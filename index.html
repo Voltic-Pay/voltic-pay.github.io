@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Voltic — tap to pay, self-custodial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #dbdbdb;
+    --panel: #eaeaea;
+    --ink: #050505;
+    --ink-soft: #050505b3;
+    --gold: #ffb800;
+    --gold-deep: #e5a400;
+    --line: #05050524;
+    --radius: 24px;
+  }
+  * { box-sizing: border-box; }
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: calc(72px + env(safe-area-inset-top, 0px));
+  }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; }
+  h1, h2, h3 { font-family: 'Space Grotesk', ui-sans-serif, sans-serif; margin: 0; line-height: 1.05; }
+  code, pre { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding-inline: 28px; }
+  img, svg { max-width: 100%; }
+
+  /* nav */
+  header {
+    position: sticky; top: 0; z-index: 10;
+    padding-top: env(safe-area-inset-top, 0px);
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .nav { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 1.05rem; text-decoration: none; }
+  .brand svg { width: 26px; height: 26px; }
+  nav.links { display: flex; gap: 28px; font-size: 0.92rem; }
+  nav.links a { text-decoration: none; color: var(--ink-soft); }
+  nav.links a:hover { color: var(--ink); }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 24px; font-size: 0.92rem; font-weight: 600;
+    text-decoration: none; border: 1px solid transparent;
+    border-radius: 999px;
+    box-shadow: none;
+    transition: transform .2s cubic-bezier(.22,1,.36,1), box-shadow .2s ease, background-color .2s ease;
+  }
+  .btn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px -8px rgba(5,5,5,.28); }
+  .btn:active { transform: translateY(0); box-shadow: none; }
+  .btn-gold { background: var(--gold); color: #050505; }
+  .btn-gold:hover { background: var(--gold-deep); }
+  .btn-outline { border-color: var(--line); color: var(--ink); background: transparent; }
+  .btn-outline:hover { background: rgba(5,5,5,.05); border-color: rgba(5,5,5,.2); }
+  .btn:focus-visible, a:focus-visible, button:focus-visible { outline: 2px solid var(--gold-deep); outline-offset: 2px; }
+
+
+  /* hero */
+  .hero { padding-block: 64px 44px; }
+  .hero-top { display: flex; align-items: flex-start; gap: 40px; flex-wrap: wrap; }
+  .hero-mark { position: relative; isolation: isolate; flex: none; }
+  .hero-mark::before {
+    content: ""; position: absolute; inset: -26px;
+    background: radial-gradient(circle, rgba(255,184,0,.35), transparent 70%);
+    filter: blur(20px); z-index: -1;
+  }
+  .hero-mark svg { width: 140px; height: 140px; display: block; }
+  .hero h1 { font-size: clamp(2.3rem, 5.2vw, 3.6rem); max-width: 14ch; letter-spacing: -0.01em; }
+  .hero p.lede { margin-top: 20px; font-size: 1.15rem; color: var(--ink-soft); max-width: 46ch; }
+  .cta-row { margin-top: 32px; display: flex; gap: 14px; flex-wrap: wrap; }
+  .hero-meta { margin-top: 36px; display: flex; gap: 32px; flex-wrap: wrap; font-size: 0.85rem; color: var(--ink-soft); }
+  .hero-meta strong { color: var(--ink); font-family: 'Space Grotesk'; display: block; font-size: 1.4rem; margin-bottom: 2px; }
+
+  /* one orchestrated load-in for the hero — nothing else animates on scroll */
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-mark, .hero h1, .hero p.lede, .hero .cta-row, .hero-meta {
+      animation: rise .7s cubic-bezier(.22,1,.36,1) both;
+    }
+    .hero-mark { animation-delay: 0s; }
+    .hero h1 { animation-delay: .08s; }
+    .hero p.lede { animation-delay: .16s; }
+    .hero .cta-row { animation-delay: .24s; }
+    .hero-meta { animation-delay: .32s; }
+  }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* divider */
+  .cut {
+    height: 6px; width: 100%; background: var(--gold);
+    border-radius: 999px;
+  }
+
+  section.wrap { padding-block: 40px; }
+  section.wrap > p { margin-block: 16px 0; }
+  .eyebrow-free h2 { font-size: clamp(1.6rem, 3.4vw, 2.2rem); max-width: 20ch; }
+
+  /* stacked headline + deck — keeps heading and its line as one unit */
+  .section-head {
+    display: block;
+    max-width: 62ch;
+    margin-bottom: 24px;
+  }
+  .section-head h2 {
+    font-size: clamp(1.6rem, 3.4vw, 2.2rem);
+    max-width: 24ch;
+  }
+  .section-head p {
+    color: var(--ink-soft);
+    max-width: 52ch;
+    margin: 12px 0 0;
+    font-size: 1.02rem;
+    line-height: 1.5;
+  }
+
+  .why-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .why-item {
+    padding: 26px 28px; background: var(--panel); border-radius: var(--radius);
+    box-shadow: 0 1px 2px rgba(5,5,5,.04), 0 10px 24px -18px rgba(5,5,5,.3);
+    transition: transform .25s cubic-bezier(.22,1,.36,1), box-shadow .25s ease;
+  }
+  .why-item:hover { transform: translateY(-3px); box-shadow: 0 2px 4px rgba(5,5,5,.05), 0 18px 30px -16px rgba(5,5,5,.34); }
+  .why-item h3 { font-size: 1.05rem; font-weight: 600; }
+  .why-item p { margin: 8px 0 0; color: var(--ink-soft); font-size: 0.95rem; }
+
+  .feat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .feat-item {
+    background: var(--panel); padding: 24px 20px; border-radius: var(--radius);
+    box-shadow: 0 1px 2px rgba(5,5,5,.04), 0 10px 24px -18px rgba(5,5,5,.3);
+    transition: transform .25s cubic-bezier(.22,1,.36,1), box-shadow .25s ease;
+  }
+  .feat-item:hover { transform: translateY(-3px); box-shadow: 0 2px 4px rgba(5,5,5,.05), 0 18px 30px -16px rgba(5,5,5,.34); }
+  .feat-item .num {
+    display: inline-block; font-family: 'Space Grotesk'; font-weight: 600;
+    color: var(--gold-deep); font-size: 0.72rem;
+    background: rgba(255,184,0,.16); padding: 4px 12px; border-radius: 999px;
+  }
+  .feat-item h3 { font-size: 1rem; margin-top: 12px; }
+  .feat-item p { color: var(--ink-soft); font-size: 0.88rem; margin: 8px 0 0; }
+
+  .split-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+  .install {
+    background: var(--panel); padding: 32px; border-radius: var(--radius);
+    box-shadow: 0 1px 2px rgba(5,5,5,.04), 0 10px 24px -18px rgba(5,5,5,.3);
+    transition: transform .25s cubic-bezier(.22,1,.36,1), box-shadow .25s ease;
+  }
+  .install:hover { transform: translateY(-3px); box-shadow: 0 2px 4px rgba(5,5,5,.05), 0 18px 30px -16px rgba(5,5,5,.34); }
+  .panel-title { font-size: 1.05rem; margin-bottom: 20px; }
+  .step { display: flex; gap: 14px; margin-bottom: 18px; }
+  .step .n { font-family: 'Space Grotesk'; font-weight: 600; color: var(--gold-deep); flex: none; width: 24px; }
+  .step p { margin: 0; color: var(--ink-soft); font-size: 0.94rem; }
+  .step p strong { color: var(--ink); }
+  pre {
+    background: #050505; color: #dbdbdb; padding: 18px 20px; overflow-x: auto;
+    font-size: 0.82rem; line-height: 1.6; border-radius: var(--radius);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 10px 20px -14px rgba(5,5,5,.5);
+  }
+  pre .c { color: #ffb800; }
+
+  .demo-note { margin-top: 20px; padding: 16px 18px; border: 1px dashed var(--line); border-radius: var(--radius); font-size: 0.88rem; color: var(--ink-soft); }
+  .demo-note a { color: var(--ink); font-weight: 600; }
+
+  footer { border-top: 1px solid var(--line); padding: 32px 0; }
+  .foot-row { display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; font-size: 0.85rem; color: var(--ink-soft); }
+  .foot-links { display: flex; gap: 20px; }
+  .foot-links a { text-decoration: none; }
+  .foot-links a:hover { color: var(--ink); }
+
+  @media (max-width: 760px) {
+    nav.links { display: none; }
+    .why-grid { grid-template-columns: 1fr; }
+    .feat-grid { grid-template-columns: 1fr 1fr; }
+    .split-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 480px) {
+    .feat-grid { grid-template-columns: 1fr; }
+    .install { padding: 26px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="#top">
+      <svg viewBox="0 0 108 108" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <g transform="translate(54,54)">
+          <path fill="#ffb800" d="M 0,-30 L -18,0 L 0,-5 Z"/>
+          <path fill="#050505" d="M 0,-30 L 18,0 L 0,0 Z"/>
+          <path fill="#ffb800" d="M -18,0 L 6,0 L 18,0 L 0,-6 Z"/>
+          <path fill="#050505" d="M -18,3 L 0,9 L 0,28 Z"/>
+          <path fill="#e5a400" d="M 0,5 L 18,0 L 0,28 Z"/>
+          <path fill="#ffb800" d="M -18,0 L 6,0 L 18,0 L 0,6 Z"/>
+        </g>
+      </svg>
+      Voltic
+    </a>
+    <nav class="links">
+      <a href="#what">What it is</a>
+      <a href="#why">Why it exists</a>
+      <a href="#features">Features</a>
+      <a href="#install">Install</a>
+    </nav>
+    <a class="btn btn-gold" href="https://github.com/Voltic-Pay/Voltic-App/releases">Download</a>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero wrap">
+    <div class="hero-top">
+      <div class="hero-mark">
+        <svg viewBox="0 0 108 108" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <g transform="translate(54,54)">
+            <path fill="#ffb800" d="M 0,-30 L -18,0 L 0,-5 Z"/>
+            <path fill="#050505" d="M 0,-30 L 18,0 L 0,0 Z"/>
+            <path fill="#ffb800" d="M -18,0 L 6,0 L 18,0 L 0,-6 Z"/>
+            <path fill="#050505" d="M -18,3 L 0,9 L 0,28 Z"/>
+            <path fill="#e5a400" d="M 0,5 L 18,0 L 0,28 Z"/>
+            <path fill="#ffb800" d="M -18,0 L 6,0 L 18,0 L 0,6 Z"/>
+          </g>
+        </svg>
+      </div>
+      <div>
+        <h1>Tap to pay. Nothing in between.</h1>
+        <p class="lede">Voltic turns your phone into a card for crypto — NFC tap or QR scan, straight from your wallet to theirs. No processor, no custodian, no forms.</p>
+        <div class="cta-row">
+          <a class="btn btn-gold" href="https://github.com/Voltic-Pay/Voltic-App/releases">Download the APK</a>
+          <a class="btn btn-outline" href="https://github.com/Voltic-Pay/Voltic-App">View on GitHub</a>
+        </div>
+      </div>
+    </div>
+    <div class="hero-meta">
+      <div><strong>NFC + QR</strong>two ways to pay</div>
+      <div><strong>Arbitrum</strong>one network, done well</div>
+      <div><strong>GPL-3.0</strong>free and open source</div>
+    </div>
+  </section>
+
+  <div class="cut"></div>
+
+  <section class="wrap eyebrow-free" id="what">
+    <div class="section-head">
+      <h2>A wallet built for people</h2>
+      <p>Self-custodial by default. Voltic never holds your keys or routes your payment through a company.</p>
+    </div>
+    <p style="max-width: 62ch; color: var(--ink-soft); font-size: 1.02rem;">
+      Voltic is an Android wallet built on Arbitrum. Hold your phone near a merchant's and the payment settles over NFC, or scan a QR code if that's easier. Either way, the transfer happens directly between two wallets: you sign it, the network confirms it, and that's the whole flow.
+    </p>
+  </section>
+
+  <section class="wrap" id="why">
+    <div class="section-head">
+      <h2>Why it exists</h2>
+      <p>Most crypto wallets are built for trading. Voltic is built for paying.</p>
+    </div>
+    <div class="why-grid">
+      <div class="why-item">
+        <h3>True P2P privacy</h3>
+        <p>Payments go directly between the two of you. No company sits in the middle logging your spending.</p>
+      </div>
+      <div class="why-item">
+        <h3>Zero middleman fees</h3>
+        <p>No 2% cut for a payment processor. What you send is what they get.</p>
+      </div>
+      <div class="why-item">
+        <h3>KYC-free</h3>
+        <p>No ID checks, no onboarding forms. Install it and you're already set up.</p>
+      </div>
+      <div class="why-item">
+        <h3>One network, done well</h3>
+        <p>No picking through a hundred coins on ten chains. Voltic sticks to Arbitrum so the experience stays simple.</p>
+      </div>
+      <div class="why-item">
+        <h3>Full self-custody</h3>
+        <p>Only your seed phrase controls the wallet. Nobody else can freeze or touch it.</p>
+      </div>
+      <div class="why-item">
+        <h3>Works with what you have</h3>
+        <p>Already have a self-custodial wallet? Import the same seed phrase and your balance comes with it.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap" id="features">
+    <div class="section-head">
+      <h2>What's in the app</h2>
+    </div>
+    <div class="feat-grid">
+      <div class="feat-item">
+        <div class="num">NFC / QR</div>
+        <h3>Dual payment modes</h3>
+        <p>Tap for that familiar contactless feel, or scan a code when NFC isn't an option.</p>
+      </div>
+      <div class="feat-item">
+        <div class="num">Offline</div>
+        <h3>Hybrid offline NFC</h3>
+        <p>Sign a payment with no connection — the merchant's phone broadcasts it once it's online.</p>
+      </div>
+      <div class="feat-item">
+        <div class="num">Design</div>
+        <h3>Material 3 Expressive</h3>
+        <p>A bold, bank-grade interface, not a spreadsheet with a wallet bolted on.</p>
+      </div>
+      <div class="feat-item">
+        <div class="num">Security</div>
+        <h3>Biometric-gated backup</h3>
+        <p>Your seed phrase and other sensitive actions sit behind a fingerprint or face check.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap" id="install">
+    <div class="section-head">
+      <h2>Install it, or build it yourself</h2>
+    </div>
+    <div class="split-grid">
+      <div class="install">
+        <h3 class="panel-title">Install the app</h3>
+        <div class="step">
+          <div class="n">01</div>
+          <p><strong>Download the APK</strong> from the GitHub releases page and install it — Android will warn you it's from outside the Play Store, that's expected for an early build.</p>
+        </div>
+        <div class="step">
+          <div class="n">02</div>
+          <p><strong>Create a wallet</strong> in the app, or restore one with an existing seed phrase.</p>
+        </div>
+        <div class="step">
+          <div class="n">03</div>
+          <p><strong>Fund it with ETH on Arbitrum</strong> — bridge or swap into the account address shown on your dashboard.</p>
+        </div>
+        <div class="step">
+          <div class="n">04</div>
+          <p><strong>Tap or scan</strong> to pay. That's the whole app.</p>
+        </div>
+      </div>
+      <div class="install">
+        <h3 class="panel-title">Build it yourself</h3>
+        <pre><span class="c"># clone and build from source</span>
+git clone https://github.com/voltic-pay/voltic.git
+cd voltic
+<span class="c"># add your Arbiscan key for tx history (optional)</span>
+echo "ARBISCAN_API_KEY=your_key" >> local.properties
+./gradlew assembleDebug</pre>
+        <p style="color: var(--ink-soft); font-size: 0.88rem; margin-top: 14px;">
+          Needs Android Studio Ladybug+, JDK 17+, and an NFC-capable device to test tap-to-pay. Want to deploy your own version of the payment contract? Check the README inside <code>/contracts</code>.
+        </p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot-row">
+    <span>Voltic — GPL-3.0 licensed.</span>
+    <div class="foot-links">
+      <a href="https://github.com/Voltic-Pay/Voltic-App">Source</a>
+      <a href="https://github.com/Voltic-Pay/Voltic-App/blob/master/CONTRIBUTING.md">Contribute</a>
+      <a href="https://github.com/Voltic-Pay/Voltic-App/releases">Releases</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
