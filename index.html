@@ -9,382 +9,592 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #dbdbdb;
-    --panel: #eaeaea;
-    --ink: #050505;
-    --ink-soft: #050505b3;
-    --gold: #ffb800;
-    --gold-deep: #e5a400;
-    --line: #05050524;
-    --radius: 24px;
+    --bg: #dbdbdb; --ink: #050505; --soft: #050505b3; --line: #05050533;
+    --gold: #ffb800; --gold-deep: #e5a400;
+    --top: calc(72px + env(safe-area-inset-top, 0px));
+    --left: 170px;
   }
   * { box-sizing: border-box; }
-  html {
-    scroll-behavior: smooth;
-    scroll-padding-top: calc(72px + env(safe-area-inset-top, 0px));
-    overflow-x: clip; /* safety net: page never scrolls sideways */
-  }
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--ink);
-    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
-    padding-top: env(safe-area-inset-top, 0px);
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-    -webkit-font-smoothing: antialiased;
-    overflow-x: clip;
-  }
+  html { overflow-x: clip; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; -webkit-font-smoothing: antialiased; overflow-x: clip; }
   a { color: inherit; }
   h1, h2, h3 { font-family: 'Space Grotesk', ui-sans-serif, sans-serif; margin: 0; line-height: 1.05; }
   code, pre { font-family: 'JetBrains Mono', ui-monospace, monospace; }
-  code { overflow-wrap: anywhere; }
-  .wrap { max-width: 1040px; margin: 0 auto; padding-inline: 28px; }
-  img, svg { max-width: 100%; }
+  button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--gold-deep); outline-offset: 3px; border-radius: 6px; }
 
-  /* nav */
-  header {
-    position: sticky; top: 0; z-index: 10;
-    padding-top: env(safe-area-inset-top, 0px);
-    background: color-mix(in srgb, var(--bg) 88%, transparent);
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid var(--line);
+  .track { position: relative; height: calc(var(--n, 5.5) * 100vh); height: calc(var(--n, 5.5) * 100svh); }
+  .stage {
+    position: sticky; top: 0;
+    height: 100vh; height: 100svh;
+    overflow: hidden;
   }
-  .nav { display: flex; align-items: center; justify-content: space-between; height: 64px; }
-  .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 1.05rem; text-decoration: none; }
+
+  .bar { position: absolute; inset: 0 0 auto 0; z-index: 20; height: var(--top); padding: env(safe-area-inset-top, 0px) 28px 0; display: flex; align-items: center; justify-content: space-between; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; text-decoration: none; }
   .brand svg { width: 26px; height: 26px; }
-  nav.links { display: flex; gap: 28px; font-size: 0.92rem; }
-  nav.links a { text-decoration: none; color: var(--ink-soft); }
-  nav.links a:hover { color: var(--ink); }
-  .btn {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 12px 24px; font-size: 0.92rem; font-weight: 600;
-    text-decoration: none; border: 1px solid transparent;
-    border-radius: 999px;
-    box-shadow: none;
-    transition: transform .2s cubic-bezier(.22,1,.36,1), box-shadow .2s ease, background-color .2s ease;
-  }
-  .btn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px -8px rgba(5,5,5,.28); }
-  .btn:active { transform: translateY(0); box-shadow: none; }
-  .btn-gold { background: var(--gold); color: #050505; }
+  .btn { display: inline-flex; align-items: center; padding: 11px 22px; border-radius: 999px; font-size: .92rem; font-weight: 600; text-decoration: none; border: 1px solid transparent; transition: background-color .2s ease; }
+  .btn-gold { background: var(--gold); color: var(--ink); }
   .btn-gold:hover { background: var(--gold-deep); }
-  .btn-outline { border-color: var(--line); color: var(--ink); background: transparent; }
-  .btn-outline:hover { background: rgba(5,5,5,.05); border-color: rgba(5,5,5,.2); }
-  .btn:focus-visible, a:focus-visible, button:focus-visible { outline: 2px solid var(--gold-deep); outline-offset: 2px; }
+  .btn-line { border-color: var(--line); }
+  .btn-line:hover { background: rgba(5,5,5,.06); }
 
+  .rail { position: absolute; z-index: 20; left: 40px; top: 22%; bottom: 18%; width: 2px; opacity: 0; pointer-events: none; transition: opacity .35s ease; }
+  .rail.show { opacity: 1; pointer-events: auto; }
+  .rail .base, .rail .fill { position: absolute; inset: 0; background: var(--line); }
+  .rail .fill { background: var(--gold); transform-origin: top; transform: scaleY(0); }
+  .ri { position: absolute; left: 1px; top: calc(var(--f) * 100%); width: 0; height: 0; }
+  .ri .dot { position: absolute; left: -5px; top: -5px; width: 10px; height: 10px; border-radius: 50%; background: var(--bg); border: 2px solid var(--ink); transition: background-color .25s, transform .25s; }
+  .ri .lab {
+    position: absolute; left: 18px; top: 0; white-space: nowrap;
+    font: 500 1.05rem 'Space Grotesk', sans-serif; color: var(--soft);
+    transform-origin: 0 50%; transform: translateY(-50%) rotate(-45deg);
+    transition: color .25s;
+  }
+  .ri:hover .lab { color: var(--ink); }
+  .ri.on .dot { background: var(--gold); border-color: var(--gold); transform: scale(1.5); }
+  .ri.on .lab { color: var(--ink); font-weight: 700; }
+  .ri .hit { position: absolute; left: -14px; top: -14px; width: 28px; height: 28px; }
 
-  /* hero */
-  .hero { padding-block: 64px 44px; }
-  .hero-top { display: flex; align-items: flex-start; gap: 40px; flex-wrap: wrap; }
-  .hero-mark { position: relative; isolation: isolate; flex: none; }
-  .hero-mark::before {
-    content: ""; position: absolute; inset: -26px;
-    background: radial-gradient(circle, rgba(255,184,0,.35), transparent 70%);
-    filter: blur(20px); z-index: -1;
+  .panel {
+    position: absolute; inset: 0;
+    padding: var(--top) 40px 48px var(--left);
+    display: flex; align-items: center;
+    background: var(--bg);
+    perspective: 1200px;
+    perspective-origin: 50% 50%;
+    will-change: transform;
+    visibility: hidden;
   }
-  .hero-mark svg { width: 140px; height: 140px; display: block; }
-  .hero h1 { font-size: clamp(2.3rem, 5.2vw, 3.6rem); max-width: 14ch; letter-spacing: -0.01em; }
-  .hero p.lede { margin-top: 20px; font-size: 1.15rem; color: var(--ink-soft); max-width: 46ch; }
-  .cta-row { margin-top: 32px; display: flex; gap: 14px; flex-wrap: wrap; }
-  .hero-meta { margin-top: 36px; display: flex; gap: 32px; flex-wrap: wrap; font-size: 0.85rem; color: var(--ink-soft); }
-  .hero-meta strong { color: var(--ink); font-family: 'Space Grotesk'; display: block; font-size: 1.4rem; margin-bottom: 2px; }
+  .pin {
+    width: 100%; max-width: 640px; min-width: 0;
+    transform-origin: 50% 50%;
+    backface-visibility: hidden;
+    will-change: transform, opacity;
+  }
+  .panel h2 { font-size: clamp(2rem, 4.4vw, 3.2rem); letter-spacing: -.01em; }
+  .panel h1 { font-size: clamp(2.4rem, 5.6vw, 4.2rem); letter-spacing: -.015em; max-width: 12ch; }
+  .lede { margin: 18px 0 0; font-size: 1.12rem; color: var(--soft); max-width: 44ch; line-height: 1.5; }
+  .cta { margin-top: 28px; display: flex; gap: 12px; flex-wrap: wrap; }
+  .mark { width: 92px; height: 92px; display: block; margin-bottom: 26px; }
+  .facts { margin: 34px 0 0; padding: 0; list-style: none; display: flex; gap: 28px; flex-wrap: wrap; font-size: .85rem; color: var(--soft); }
+  .facts b { display: block; font: 600 1.2rem 'Space Grotesk'; color: var(--ink); }
+  .rows { margin: 26px 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 32px; }
+  .rows li { padding: 14px 0; border-top: 1px solid var(--line); min-width: 0; }
+  .rows h3 { font-size: 1.02rem; font-weight: 600; }
+  .rows p { margin: 5px 0 0; font-size: .9rem; color: var(--soft); line-height: 1.45; }
+  .steps { margin: 26px 0 0; padding: 0; list-style: none; counter-reset: s; }
+  .steps li { counter-increment: s; display: flex; gap: 16px; padding: 14px 0; border-top: 1px solid var(--line); font-size: .95rem; color: var(--soft); line-height: 1.5; }
+  .steps li::before { content: counter(s); font: 600 1.1rem 'Space Grotesk'; color: var(--gold-deep); width: 18px; flex: none; }
+  .steps b { color: var(--ink); font-weight: 600; }
+  pre { margin: 24px 0 0; max-width: 100%; overflow-x: auto; padding: 18px 20px; border-radius: 16px; background: var(--ink); color: var(--bg); font-size: .82rem; line-height: 1.7; }
+  pre .c { color: var(--gold); }
+  .note { margin: 16px 0 0; font-size: .9rem; color: var(--soft); max-width: 52ch; line-height: 1.5; }
+  code { overflow-wrap: anywhere; }
 
-  /* one orchestrated load-in for the hero — nothing else animates on scroll */
-  @media (prefers-reduced-motion: no-preference) {
-    .hero-mark, .hero h1, .hero p.lede, .hero .cta-row, .hero-meta {
-      animation: rise .7s cubic-bezier(.22,1,.36,1) both;
-    }
-    .hero-mark { animation-delay: 0s; }
-    .hero h1 { animation-delay: .08s; }
-    .hero p.lede { animation-delay: .16s; }
-    .hero .cta-row { animation-delay: .24s; }
-    .hero-meta { animation-delay: .32s; }
-  }
-  @keyframes rise {
-    from { opacity: 0; transform: translateY(14px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
+  .hint { position: absolute; right: 40px; bottom: calc(22px + env(safe-area-inset-bottom, 0px)); z-index: 20; font-size: .8rem; color: var(--soft); display: flex; align-items: center; gap: 10px; transition: opacity .3s ease; }
+  .hint i { display: block; width: 1px; height: 28px; background: var(--ink); transform-origin: top; animation: drip 1.6s ease-in-out infinite; }
+  @keyframes drip { 0% { transform: scaleY(0); } 60% { transform: scaleY(1); opacity: 1; } 100% { transform: scaleY(1); opacity: 0; } }
 
-  /* divider */
-  .cut {
-    height: 6px; width: 100%; background: var(--gold);
-    border-radius: 999px;
-  }
+  .panel.first .pin > * { animation: rise .8s cubic-bezier(.22,1,.36,1) both; }
+  .panel.first .pin > :nth-child(2) { animation-delay: .08s; }
+  .panel.first .pin > :nth-child(3) { animation-delay: .16s; }
+  .panel.first .pin > :nth-child(4) { animation-delay: .24s; }
+  .panel.first .pin > :nth-child(5) { animation-delay: .32s; }
+  @keyframes rise { from { opacity: 0; transform: translateY(16px); } }
 
-  section.wrap { padding-block: 40px; }
-  section.wrap > p { margin-block: 16px 0; }
-  .eyebrow-free h2 { font-size: clamp(1.6rem, 3.4vw, 2.2rem); max-width: 20ch; }
-
-  /* stacked headline + deck — keeps heading and its line as one unit */
-  .section-head {
-    display: block;
-    max-width: 62ch;
-    margin-bottom: 24px;
-  }
-  .section-head h2 {
-    font-size: clamp(1.6rem, 3.4vw, 2.2rem);
-    max-width: 24ch;
-  }
-  .section-head p {
-    color: var(--ink-soft);
-    max-width: 52ch;
-    margin: 12px 0 0;
-    font-size: 1.02rem;
-    line-height: 1.5;
-  }
-
-  /* minmax(0, 1fr) + min-width:0 stops wide content (the code block) from stretching grid columns past the screen */
-  .why-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-  .why-item {
-    min-width: 0;
-    padding: 26px 28px; background: var(--panel); border-radius: var(--radius);
-    box-shadow: 0 1px 2px rgba(5,5,5,.04), 0 10px 24px -18px rgba(5,5,5,.3);
-    transition: transform .25s cubic-bezier(.22,1,.36,1), box-shadow .25s ease;
-  }
-  .why-item:hover { transform: translateY(-3px); box-shadow: 0 2px 4px rgba(5,5,5,.05), 0 18px 30px -16px rgba(5,5,5,.34); }
-  .why-item h3 { font-size: 1.05rem; font-weight: 600; }
-  .why-item p { margin: 8px 0 0; color: var(--ink-soft); font-size: 0.95rem; }
-
-  .feat-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
-  .feat-item {
-    min-width: 0;
-    background: var(--panel); padding: 24px 20px; border-radius: var(--radius);
-    box-shadow: 0 1px 2px rgba(5,5,5,.04), 0 10px 24px -18px rgba(5,5,5,.3);
-    transition: transform .25s cubic-bezier(.22,1,.36,1), box-shadow .25s ease;
-  }
-  .feat-item:hover { transform: translateY(-3px); box-shadow: 0 2px 4px rgba(5,5,5,.05), 0 18px 30px -16px rgba(5,5,5,.34); }
-  .feat-item .num {
-    display: inline-block; font-family: 'Space Grotesk'; font-weight: 600;
-    color: var(--gold-deep); font-size: 0.72rem;
-    background: rgba(255,184,0,.16); padding: 4px 12px; border-radius: 999px;
-  }
-  .feat-item h3 { font-size: 1rem; margin-top: 12px; }
-  .feat-item p { color: var(--ink-soft); font-size: 0.88rem; margin: 8px 0 0; }
-
-  .split-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: start; }
-  .install {
-    min-width: 0;
-    background: var(--panel); padding: 32px; border-radius: var(--radius);
-    box-shadow: 0 1px 2px rgba(5,5,5,.04), 0 10px 24px -18px rgba(5,5,5,.3);
-    transition: transform .25s cubic-bezier(.22,1,.36,1), box-shadow .25s ease;
-  }
-  .install:hover { transform: translateY(-3px); box-shadow: 0 2px 4px rgba(5,5,5,.05), 0 18px 30px -16px rgba(5,5,5,.34); }
-  .panel-title { font-size: 1.05rem; margin-bottom: 20px; }
-  .step { display: flex; gap: 14px; margin-bottom: 18px; }
-  .step .n { font-family: 'Space Grotesk'; font-weight: 600; color: var(--gold-deep); flex: none; width: 24px; }
-  .step p { margin: 0; min-width: 0; color: var(--ink-soft); font-size: 0.94rem; }
-  .step p strong { color: var(--ink); }
-  pre {
-    max-width: 100%;
-    margin: 0;
-    background: #050505; color: #dbdbdb; padding: 18px 20px; overflow-x: auto;
-    font-size: 0.82rem; line-height: 1.6; border-radius: var(--radius);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 10px 20px -14px rgba(5,5,5,.5);
-  }
-  pre .c { color: #ffb800; }
-
-  .demo-note { margin-top: 20px; padding: 16px 18px; border: 1px dashed var(--line); border-radius: var(--radius); font-size: 0.88rem; color: var(--ink-soft); }
-  .demo-note a { color: var(--ink); font-weight: 600; }
-
-  footer { border-top: 1px solid var(--line); padding: 32px 0; }
-  .foot-row { display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; font-size: 0.85rem; color: var(--ink-soft); }
-  .foot-links { display: flex; gap: 20px; }
-  .foot-links a { text-decoration: none; }
-  .foot-links a:hover { color: var(--ink); }
+  footer { border-top: 1px solid var(--line); padding: 28px; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-size: .85rem; color: var(--soft); }
+  footer nav { display: flex; gap: 20px; }
+  footer a { text-decoration: none; }
+  footer a:hover { color: var(--ink); }
 
   @media (max-width: 760px) {
-    nav.links { display: none; }
-    .why-grid { grid-template-columns: minmax(0, 1fr); }
-    .feat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .split-grid { grid-template-columns: minmax(0, 1fr); }
+    .bar { padding-inline: 18px; }
+    .panel { padding: var(--top) 20px calc(96px + env(safe-area-inset-bottom, 0px)) 20px; }
+    .rail { left: 46px; right: 26px; top: auto; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); width: auto; height: 2px; }
+    .rail .fill { transform-origin: left; transform: scaleX(0); }
+    .ri { left: calc(var(--f) * 100%); top: 1px; }
+    .ri .lab { left: auto; right: -3px; top: auto; bottom: 12px; font-size: .74rem; transform-origin: 100% 100%; transform: rotate(45deg); }
+    .rows { grid-template-columns: minmax(0, 1fr); }
+    .rows li { padding: 9px 0; }
+    .rows p { font-size: .84rem; margin-top: 2px; }
+    .steps li { padding: 10px 0; font-size: .88rem; }
+    .lede { font-size: 1rem; }
+    .mark { width: 64px; height: 64px; margin-bottom: 18px; }
+    .facts { margin-top: 24px; gap: 20px; }
+    .hint { right: 50%; transform: translateX(50%); bottom: calc(20px + env(safe-area-inset-bottom, 0px)); }
+    pre { font-size: .76rem; padding: 14px 16px; }
   }
-  @media (max-width: 480px) {
-    .wrap { padding-inline: 20px; }
-    .feat-grid { grid-template-columns: minmax(0, 1fr); }
-    .install { padding: 26px 22px; }
-  }
+  @media (max-height: 640px) and (max-width: 760px) { .rows p { display: none; } }
 </style>
 </head>
 <body>
 
-<header>
-  <div class="wrap nav">
-    <a class="brand" href="#top">
-      <svg viewBox="0 0 108 108" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <g transform="translate(54,54)">
-          <path fill="#ffb800" d="M 0,-30 L -18,0 L 0,-5 Z"/>
-          <path fill="#050505" d="M 0,-30 L 18,0 L 0,0 Z"/>
-          <path fill="#ffb800" d="M -18,0 L 6,0 L 18,0 L 0,-6 Z"/>
-          <path fill="#050505" d="M -18,3 L 0,9 L 0,28 Z"/>
-          <path fill="#e5a400" d="M 0,5 L 18,0 L 0,28 Z"/>
-          <path fill="#ffb800" d="M -18,0 L 6,0 L 18,0 L 0,6 Z"/>
-        </g>
-      </svg>
-      Voltic
-    </a>
-    <nav class="links">
-      <a href="#what">What it is</a>
-      <a href="#why">Why it exists</a>
-      <a href="#features">Features</a>
-      <a href="#install">Install</a>
+<div class="track" id="track">
+  <div class="stage" id="stage">
+
+    <div class="bar">
+      <a class="brand" href="#" data-go="0">
+        <svg viewBox="0 0 108 108" aria-hidden="true"><g transform="translate(54,54)">
+          <path fill="#ffb800" d="M 0,-30 L -18,0 L 0,-5 Z"/><path fill="#050505" d="M 0,-30 L 18,0 L 0,0 Z"/>
+          <path fill="#ffb800" d="M -18,0 L 6,0 L 18,0 L 0,-6 Z"/><path fill="#050505" d="M -18,3 L 0,9 L 0,28 Z"/>
+          <path fill="#e5a400" d="M 0,5 L 18,0 L 0,28 Z"/><path fill="#ffb800" d="M -18,0 L 6,0 L 18,0 L 0,6 Z"/>
+        </g></svg>
+        Voltic
+      </a>
+      <a class="btn btn-gold" href="https://github.com/Voltic-Pay/Voltic-App/releases">Download</a>
+    </div>
+
+    <nav class="rail" id="rail" aria-label="Sections">
+      <div class="base"></div><div class="fill" id="fill"></div>
     </nav>
-    <a class="btn btn-gold" href="https://github.com/Voltic-Pay/Voltic-App/releases">Download</a>
-  </div>
-</header>
 
-<main id="top">
-  <section class="hero wrap">
-    <div class="hero-top">
-      <div class="hero-mark">
-        <svg viewBox="0 0 108 108" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <g transform="translate(54,54)">
-            <path fill="#ffb800" d="M 0,-30 L -18,0 L 0,-5 Z"/>
-            <path fill="#050505" d="M 0,-30 L 18,0 L 0,0 Z"/>
-            <path fill="#ffb800" d="M -18,0 L 6,0 L 18,0 L 0,-6 Z"/>
-            <path fill="#050505" d="M -18,3 L 0,9 L 0,28 Z"/>
-            <path fill="#e5a400" d="M 0,5 L 18,0 L 0,28 Z"/>
-            <path fill="#ffb800" d="M -18,0 L 6,0 L 18,0 L 0,6 Z"/>
-          </g>
-        </svg>
-      </div>
-      <div>
+    <section class="panel first" data-title="Tap to pay">
+      <div class="pin">
+        <svg class="mark" viewBox="0 0 108 108" aria-hidden="true"><g transform="translate(54,54)">
+          <path fill="#ffb800" d="M 0,-30 L -18,0 L 0,-5 Z"/><path fill="#050505" d="M 0,-30 L 18,0 L 0,0 Z"/>
+          <path fill="#ffb800" d="M -18,0 L 6,0 L 18,0 L 0,-6 Z"/><path fill="#050505" d="M -18,3 L 0,9 L 0,28 Z"/>
+          <path fill="#e5a400" d="M 0,5 L 18,0 L 0,28 Z"/><path fill="#ffb800" d="M -18,0 L 6,0 L 18,0 L 0,6 Z"/>
+        </g></svg>
         <h1>Tap to pay. Nothing in between.</h1>
-        <p class="lede">Voltic turns your phone into a card for crypto — NFC tap or QR scan, straight from your wallet to theirs. No processor, no custodian, no forms.</p>
-        <div class="cta-row">
+        <p class="lede">Voltic turns your phone into a card for crypto. Tap over NFC or scan a QR code, straight from your wallet to theirs. No processor, no custodian, no forms.</p>
+        <div class="cta">
           <a class="btn btn-gold" href="https://github.com/Voltic-Pay/Voltic-App/releases">Download the APK</a>
-          <a class="btn btn-outline" href="https://github.com/Voltic-Pay/Voltic-App">View on GitHub</a>
+          <a class="btn btn-line" href="https://github.com/Voltic-Pay/Voltic-App">View on GitHub</a>
         </div>
+        <ul class="facts">
+          <li><b>NFC + QR</b>two ways to pay</li>
+          <li><b>Arbitrum</b>one network, done well</li>
+          <li><b>GPL-3.0</b>free and open source</li>
+        </ul>
       </div>
-    </div>
-    <div class="hero-meta">
-      <div><strong>NFC + QR</strong>two ways to pay</div>
-      <div><strong>Arbitrum</strong>one network, done well</div>
-      <div><strong>GPL-3.0</strong>free and open source</div>
-    </div>
-  </section>
+    </section>
 
-  <div class="cut"></div>
+    <section class="panel" data-title="Why Voltic">
+      <div class="pin">
+        <h2>Built for paying, not trading</h2>
+        <p class="lede">Self-custodial by default. Voltic never holds your keys or routes a payment through a company.</p>
+        <ul class="rows">
+          <li><h3>True P2P privacy</h3><p>Payments go directly between two wallets. Nobody logs your spending.</p></li>
+          <li><h3>Zero middleman fees</h3><p>No 2% processor cut. What you send is what they get.</p></li>
+          <li><h3>KYC-free</h3><p>No ID checks or onboarding forms.</p></li>
+          <li><h3>One network</h3><p>Arbitrum only, so it stays simple.</p></li>
+          <li><h3>Full self-custody</h3><p>Only your seed phrase controls the wallet.</p></li>
+          <li><h3>Bring your wallet</h3><p>Import your seed phrase and your balance follows.</p></li>
+        </ul>
+      </div>
+    </section>
 
-  <section class="wrap eyebrow-free" id="what">
-    <div class="section-head">
-      <h2>A wallet built for people</h2>
-      <p>Self-custodial by default. Voltic never holds your keys or routes your payment through a company.</p>
-    </div>
-    <p style="max-width: 62ch; color: var(--ink-soft); font-size: 1.02rem;">
-      Voltic is an Android wallet built on Arbitrum. Hold your phone near a merchant's and the payment settles over NFC, or scan a QR code if that's easier. Either way, the transfer happens directly between two wallets: you sign it, the network confirms it, and that's the whole flow.
-    </p>
-  </section>
+    <section class="panel" data-title="Features">
+      <div class="pin">
+        <h2>What's in the app</h2>
+        <ul class="rows">
+          <li><h3>Tap or scan</h3><p>Tap for the familiar contactless feel, or scan a code when NFC isn't an option.</p></li>
+          <li><h3>Hybrid offline NFC</h3><p>Sign a payment with no connection. The merchant's phone broadcasts it once it's online.</p></li>
+          <li><h3>Material 3 Expressive</h3><p>A bold, bank-grade interface, not a spreadsheet with a wallet bolted on.</p></li>
+          <li><h3>Biometric-gated backup</h3><p>Your seed phrase and other sensitive actions sit behind a fingerprint or face check.</p></li>
+        </ul>
+      </div>
+    </section>
 
-  <section class="wrap" id="why">
-    <div class="section-head">
-      <h2>Why it exists</h2>
-      <p>Most crypto wallets are built for trading. Voltic is built for paying.</p>
-    </div>
-    <div class="why-grid">
-      <div class="why-item">
-        <h3>True P2P privacy</h3>
-        <p>Payments go directly between the two of you. No company sits in the middle logging your spending.</p>
+    <section class="panel" data-title="Install">
+      <div class="pin">
+        <h2>Up and running in four steps</h2>
+        <ol class="steps">
+          <li><span><b>Download the APK</b> from the GitHub releases page. Android will warn you it's from outside the Play Store; that's expected for an early build.</span></li>
+          <li><span><b>Create a wallet</b> in the app, or restore one with an existing seed phrase.</span></li>
+          <li><span><b>Fund it with ETH on Arbitrum.</b> Bridge or swap into the account address on your dashboard.</span></li>
+          <li><span><b>Tap or scan</b> to pay. That's the whole app.</span></li>
+        </ol>
       </div>
-      <div class="why-item">
-        <h3>Zero middleman fees</h3>
-        <p>No 2% cut for a payment processor. What you send is what they get.</p>
-      </div>
-      <div class="why-item">
-        <h3>KYC-free</h3>
-        <p>No ID checks, no onboarding forms. Install it and you're already set up.</p>
-      </div>
-      <div class="why-item">
-        <h3>One network, done well</h3>
-        <p>No picking through a hundred coins on ten chains. Voltic sticks to Arbitrum so the experience stays simple.</p>
-      </div>
-      <div class="why-item">
-        <h3>Full self-custody</h3>
-        <p>Only your seed phrase controls the wallet. Nobody else can freeze or touch it.</p>
-      </div>
-      <div class="why-item">
-        <h3>Works with what you have</h3>
-        <p>Already have a self-custodial wallet? Import the same seed phrase and your balance comes with it.</p>
-      </div>
-    </div>
-  </section>
+    </section>
 
-  <section class="wrap" id="features">
-    <div class="section-head">
-      <h2>What's in the app</h2>
-    </div>
-    <div class="feat-grid">
-      <div class="feat-item">
-        <div class="num">NFC / QR</div>
-        <h3>Dual payment modes</h3>
-        <p>Tap for that familiar contactless feel, or scan a code when NFC isn't an option.</p>
-      </div>
-      <div class="feat-item">
-        <div class="num">Offline</div>
-        <h3>Hybrid offline NFC</h3>
-        <p>Sign a payment with no connection — the merchant's phone broadcasts it once it's online.</p>
-      </div>
-      <div class="feat-item">
-        <div class="num">Design</div>
-        <h3>Material 3 Expressive</h3>
-        <p>A bold, bank-grade interface, not a spreadsheet with a wallet bolted on.</p>
-      </div>
-      <div class="feat-item">
-        <div class="num">Security</div>
-        <h3>Biometric-gated backup</h3>
-        <p>Your seed phrase and other sensitive actions sit behind a fingerprint or face check.</p>
-      </div>
-    </div>
-  </section>
-
-  <section class="wrap" id="install">
-    <div class="section-head">
-      <h2>Install it, or build it yourself</h2>
-    </div>
-    <div class="split-grid">
-      <div class="install">
-        <h3 class="panel-title">Install the app</h3>
-        <div class="step">
-          <div class="n">01</div>
-          <p><strong>Download the APK</strong> from the GitHub releases page and install it — Android will warn you it's from outside the Play Store, that's expected for an early build.</p>
-        </div>
-        <div class="step">
-          <div class="n">02</div>
-          <p><strong>Create a wallet</strong> in the app, or restore one with an existing seed phrase.</p>
-        </div>
-        <div class="step">
-          <div class="n">03</div>
-          <p><strong>Fund it with ETH on Arbitrum</strong> — bridge or swap into the account address shown on your dashboard.</p>
-        </div>
-        <div class="step">
-          <div class="n">04</div>
-          <p><strong>Tap or scan</strong> to pay. That's the whole app.</p>
-        </div>
-      </div>
-      <div class="install">
-        <h3 class="panel-title">Build it yourself</h3>
+    <section class="panel" data-title="Build it">
+      <div class="pin">
+        <h2>Build it yourself</h2>
         <pre><span class="c"># clone and build from source</span>
 git clone https://github.com/voltic-pay/voltic.git
 cd voltic
 <span class="c"># add your Arbiscan key for tx history (optional)</span>
 echo "ARBISCAN_API_KEY=your_key" >> local.properties
 ./gradlew assembleDebug</pre>
-        <p style="color: var(--ink-soft); font-size: 0.88rem; margin-top: 14px;">
-          Needs Android Studio Ladybug+, JDK 17+, and an NFC-capable device to test tap-to-pay. Want to deploy your own version of the payment contract? Check the README inside <code>/contracts</code>.
-        </p>
+        <p class="note">Needs Android Studio Ladybug+, JDK 17+, and an NFC-capable device to test tap-to-pay. To deploy your own version of the payment contract, see the README inside <code>/contracts</code>.</p>
+        <div class="cta"><a class="btn btn-line" href="https://github.com/Voltic-Pay/Voltic-App">Source on GitHub</a></div>
       </div>
-    </div>
-  </section>
-</main>
+    </section>
+
+    <div class="hint" id="hint"><i></i>Scroll</div>
+  </div>
+</div>
 
 <footer>
-  <div class="wrap foot-row">
-    <span>Voltic — GPL-3.0 licensed.</span>
-    <div class="foot-links">
-      <a href="https://github.com/Voltic-Pay/Voltic-App">Source</a>
-      <a href="https://github.com/Voltic-Pay/Voltic-App/blob/master/CONTRIBUTING.md">Contribute</a>
-      <a href="https://github.com/Voltic-Pay/Voltic-App/releases">Releases</a>
-    </div>
-  </div>
+  <span>Voltic — GPL-3.0 licensed.</span>
+  <nav>
+    <a href="https://github.com/Voltic-Pay/Voltic-App">Source</a>
+    <a href="https://github.com/Voltic-Pay/Voltic-App/blob/master/CONTRIBUTING.md">Contribute</a>
+    <a href="https://github.com/Voltic-Pay/Voltic-App/releases">Releases</a>
+  </nav>
 </footer>
 
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const track = $('track'), stage = $('stage'), rail = $('rail'), fill = $('fill'), hint = $('hint');
+  const panels = [...document.querySelectorAll('.panel')];
+  const pins   = panels.map(p => p.firstElementChild);
+  const N      = panels.length;
+
+  // ---- tuning ------------------------------------------------------------
+  const SCROLL_PER_SECTION = 0.5;
+  const FLIP_DEG  = 65;
+  const FLIP_DIR  = -1;
+  const SHRINK    = 0.10;
+  const FADE      = 1.05;
+  const LERP = 0.5;
+
+  const WHEEL_ACCUM_THRESHOLD = 18;
+  const WHEEL_RESET_MS = 180;
+
+  const CLICK_DURATION   = 380;
+  const WHEEL_DURATION   = 380;
+  const TOUCH_DURATION   = 280;
+
+  const VEL_THRESHOLD = 0.2;
+  const IDLE_FRAMES   = 3;
+
+  const FOOTER_MARGIN = 0.15;
+
+  // Touch swipe tuning (px). Any swipe bigger than this advances a section.
+  const SWIPE_MIN_DIST = 20;
+  const SWIPE_MIN_VEL  = 0.35;   // px/ms
+  // ------------------------------------------------------------------------
+
+  panels.forEach((el, i) => el.style.zIndex = i + 1);
+
+  const items = panels.map((p, i) => {
+    const b = document.createElement('button');
+    b.className = 'ri';
+    b.style.setProperty('--f', i / (N - 1));
+    b.setAttribute('aria-label', p.dataset.title);
+    b.innerHTML = '<span class="hit"></span><span class="dot"></span><span class="lab">' + p.dataset.title + '</span>';
+    b.addEventListener('click', () => go(i));
+    rail.appendChild(b);
+    return b;
+  });
+
+  // ---------- measurements ----------
+  let H = stage.clientHeight;
+  let S = 0;
+  let top0 = 0, small = innerWidth <= 760;
+
+  function measure() {
+    H = stage.clientHeight;
+    S = H * SCROLL_PER_SECTION;
+    small = innerWidth <= 760;
+    track.style.height = (H + (N - 1 + 0.5) * S) + 'px';
+    top0 = track.getBoundingClientRect().top + window.scrollY;
+  }
+
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  const rawP = () => (window.scrollY - top0) / S;
+  const progress = () => clamp(rawP(), 0, N - 1);
+
+  let currentSection = 0;
+
+  // ---------- tween ----------
+  let tweenRaf = 0;
+  let animating = false;
+
+  function cancelTween() {
+    if (tweenRaf) cancelAnimationFrame(tweenRaf);
+    tweenRaf = 0;
+    animating = false;
+  }
+
+  function tweenTo(sectionIndex, duration) {
+    cancelTween();
+    sectionIndex = clamp(sectionIndex, 0, N - 1);
+    currentSection = sectionIndex;
+    const start = window.scrollY;
+    const target = top0 + sectionIndex * S;
+    const dist = target - start;
+    if (Math.abs(dist) < 0.5) return;
+
+    if (duration == null) {
+      duration = Math.min(600, Math.max(240, Math.abs(dist) * 0.85));
+    }
+
+    animating = true;
+    const t0 = performance.now();
+    function step(now) {
+      if (!animating) return;
+      const t = Math.min(1, (now - t0) / duration);
+      const e = 1 - Math.pow(1 - t, 3);
+      window.scrollTo({ top: start + dist * e, behavior: 'auto' });
+      if (t < 1) {
+        tweenRaf = requestAnimationFrame(step);
+      } else {
+        tweenRaf = 0;
+        animating = false;
+      }
+    }
+    tweenRaf = requestAnimationFrame(step);
+  }
+
+  const go = i => tweenTo(i, CLICK_DURATION);
+  document.querySelectorAll('[data-go]').forEach(a =>
+    a.addEventListener('click', e => { e.preventDefault(); go(+a.dataset.go); })
+  );
+
+  // ---------- render ----------
+  let active = -1, railShown = null;
+  function render(p) {
+    for (let i = 0; i < N; i++) {
+      const el = panels[i], pin = pins[i];
+      const d  = i - p;
+      const ad = Math.abs(d);
+      if (ad >= 1.001) {
+        if (el.style.visibility !== 'hidden') {
+          el.style.visibility = 'hidden';
+          el.style.pointerEvents = 'none';
+        }
+        continue;
+      }
+      if (el.style.visibility !== 'visible') el.style.visibility = 'visible';
+      el.style.pointerEvents = ad < .5 ? 'auto' : 'none';
+
+      el.style.transform = 'translate3d(0,' + (d * 100).toFixed(3) + '%,0)';
+      const angle = d * FLIP_DEG * FLIP_DIR;
+      const scale = 1 - ad * SHRINK;
+      pin.style.transform =
+        'rotateX(' + angle.toFixed(2) + 'deg) scale(' + scale.toFixed(3) + ')';
+      pin.style.opacity = Math.max(0, 1 - ad * ad * FADE).toFixed(3);
+    }
+
+    const f = p / (N - 1);
+    fill.style.transform = small ? 'scaleX(' + f + ')' : 'scaleY(' + f + ')';
+
+    const show = p > 0.12;
+    if (show !== railShown) {
+      railShown = show;
+      rail.classList.toggle('show', show);
+      hint.style.opacity = show ? '0' : '1';
+    }
+    const a = Math.round(p);
+    if (a !== active) {
+      if (active > -1) { items[active].classList.remove('on'); items[active].removeAttribute('aria-current'); }
+      items[a].classList.add('on'); items[a].setAttribute('aria-current', 'true');
+      active = a;
+    }
+  }
+
+  // ---------- smoothed scroll loop ----------
+  let cur = 0, raf = 0;
+  function loop() {
+    const t = progress();
+    cur += (t - cur) * LERP;
+    if (Math.abs(t - cur) < 0.0004) cur = t;
+    render(cur);
+    raf = (cur === t) ? 0 : requestAnimationFrame(loop);
+  }
+  function kick() { if (!raf) raf = requestAnimationFrame(loop); }
+  window.addEventListener('scroll', kick, { passive: true });
+
+  // ==========================================================================
+  // WHEEL — desktop: one tick = one section
+  // ==========================================================================
+  let wheelAccum = 0;
+  let wheelResetTimer = 0;
+
+  function onWheel(e) {
+    if (animating) { e.preventDefault(); return; }
+    if (Math.abs(e.deltaY) < Math.abs(e.deltaX)) return;
+
+    const delta = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? H : 1);
+
+    wheelAccum += delta;
+    clearTimeout(wheelResetTimer);
+    wheelResetTimer = setTimeout(() => { wheelAccum = 0; }, WHEEL_RESET_MS);
+
+    if (Math.abs(wheelAccum) < WHEEL_ACCUM_THRESHOLD) {
+      e.preventDefault();
+      return;
+    }
+
+    const dir = wheelAccum > 0 ? 1 : -1;
+    wheelAccum = 0;
+
+    const p = rawP();
+    const inFooter = p > N - 1 + FOOTER_MARGIN;
+
+    if (inFooter) {
+      if (dir < 0) { e.preventDefault(); tweenTo(N - 1, WHEEL_DURATION); }
+      return;
+    }
+
+    const nearest = clamp(Math.round(p), 0, N - 1);
+    if (Math.abs(p - nearest) > 0.02) currentSection = nearest;
+
+    const next = clamp(currentSection + dir, 0, N - 1);
+    if (next === currentSection) return;
+
+    e.preventDefault();
+    tweenTo(next, WHEEL_DURATION);
+  }
+
+  window.addEventListener('wheel', onWheel, { passive: false });
+
+  // ==========================================================================
+  // KEYBOARD
+  // ==========================================================================
+  window.addEventListener('keydown', (e) => {
+    const tag = (e.target && e.target.tagName) || '';
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+    if (animating) return;
+
+    const p = rawP();
+    const inFooter = p > N - 1 + FOOTER_MARGIN;
+
+    if (e.key === 'ArrowDown' || e.key === 'PageDown') {
+      if (inFooter) return;
+      const nearest = clamp(Math.round(p), 0, N - 1);
+      if (Math.abs(p - nearest) > 0.02) currentSection = nearest;
+      const next = clamp(currentSection + 1, 0, N - 1);
+      if (next !== currentSection) { e.preventDefault(); tweenTo(next, WHEEL_DURATION); }
+    } else if (e.key === 'ArrowUp' || e.key === 'PageUp') {
+      if (inFooter) { e.preventDefault(); tweenTo(N - 1, WHEEL_DURATION); return; }
+      const nearest = clamp(Math.round(p), 0, N - 1);
+      if (Math.abs(p - nearest) > 0.02) currentSection = nearest;
+      const next = clamp(currentSection - 1, 0, N - 1);
+      if (next !== currentSection) { e.preventDefault(); tweenTo(next, WHEEL_DURATION); }
+    } else if (e.key === 'Home') {
+      e.preventDefault(); tweenTo(0, 500);
+    } else if (e.key === 'End') {
+      e.preventDefault(); tweenTo(N - 1, 500);
+    }
+  });
+
+  // ==========================================================================
+  // TOUCH — mobile: one deliberate swipe = one section
+  // ==========================================================================
+  // Native touch scroll runs during the gesture (so you get tactile feedback),
+  // and at touchend we decide which direction you meant and tween exactly one
+  // section in that direction. No more "fight the watcher" — any real swipe
+  // advances, however gently.
+  let touching = false;
+  let touchStartY = 0;
+  let touchStartT = 0;
+  let touchDelta = 0;
+  let lastTouchEnd = 0;
+
+  window.addEventListener('touchstart', (e) => {
+    if (e.touches.length !== 1) return;
+    touching = true;
+    touchStartY = e.touches[0].clientY;
+    touchStartT = performance.now();
+    touchDelta = 0;
+    if (animating) cancelTween();       // user grabs control instantly
+  }, { passive: true });
+
+  window.addEventListener('touchmove', (e) => {
+    if (e.touches.length !== 1) return;
+    touchDelta = touchStartY - e.touches[0].clientY;   // + = finger moved up = scroll down
+  }, { passive: true });
+
+  window.addEventListener('touchend', () => {
+    touching = false;
+    lastTouchEnd = performance.now();
+
+    const dt = Math.max(1, performance.now() - touchStartT);
+    const velocity = Math.abs(touchDelta) / dt;      // px / ms
+
+    // Tiny tap or jitter — ignore, let it stay put
+    if (Math.abs(touchDelta) < SWIPE_MIN_DIST && velocity < SWIPE_MIN_VEL) return;
+
+    const p = rawP();
+    const inFooter = p > N - 1 + FOOTER_MARGIN;
+
+    // Leaving the footer (swiping down = finger moves down = touchDelta < 0)
+    if (inFooter) {
+      if (touchDelta < -SWIPE_MIN_DIST) tweenTo(N - 1, TOUCH_DURATION);
+      return;
+    }
+
+    const dir = touchDelta > 0 ? 1 : -1;
+
+    // Base off our tracker, but honor momentum if native scroll carried past
+    const nearest = clamp(Math.round(p), 0, N - 1);
+    let target;
+    if (dir > 0) {
+      target = Math.min(currentSection + 1, N - 1);
+      if (nearest > target) target = nearest;
+    } else {
+      target = Math.max(currentSection - 1, 0);
+      if (nearest < target) target = nearest;
+    }
+
+    tweenTo(target, TOUCH_DURATION);
+  }, { passive: true });
+
+  // ==========================================================================
+  // VELOCITY WATCHER — fallback for non-touch, non-wheel scrolling
+  // (scrollbar drag, programmatic, scrollbar on touch when JS is slow)
+  // ==========================================================================
+  let prevY = window.scrollY;
+  let prevT = performance.now();
+  let vel = 0;
+  let idleFrames = 0;
+
+  function watch() {
+    const now = performance.now();
+    const y = window.scrollY;
+    const dt = Math.max(1, now - prevT);
+    const instVel = Math.abs(y - prevY) / dt;
+
+    vel = vel * 0.6 + instVel * 0.4;
+    prevY = y; prevT = now;
+
+    // Stay completely out of the way during and right after a touch —
+    // the touchend handler owns the settle in that case.
+    if (touching || now - lastTouchEnd < 150) {
+      idleFrames = 0;
+      requestAnimationFrame(watch);
+      return;
+    }
+
+    if (!animating) {
+      if (vel < VEL_THRESHOLD) {
+        idleFrames++;
+        if (idleFrames >= IDLE_FRAMES) {
+          idleFrames = 0;
+          const p = rawP();
+          if (p <= N - 1 + FOOTER_MARGIN) {
+            const nearest = clamp(Math.round(p), 0, N - 1);
+            if (Math.abs(p - nearest) > 0.006) {
+              tweenTo(nearest, TOUCH_DURATION);
+            } else {
+              currentSection = nearest;
+            }
+          }
+        }
+      } else {
+        idleFrames = 0;
+      }
+    }
+    requestAnimationFrame(watch);
+  }
+  requestAnimationFrame(watch);
+
+  window.addEventListener('resize', () => { measure(); cur = progress(); render(cur); });
+
+  measure();
+  cur = progress();
+  currentSection = clamp(Math.round(rawP()), 0, N - 1);
+  render(cur);
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(() => { measure(); cur = progress(); render(cur); });
+  }
+})();
+</script>
 </body>
 </html>
