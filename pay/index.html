@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Voltic - Payment link</title>
+<title>Voltic — Payment link</title>
 <meta name="description" content="This payment link opens in the Voltic app. Download Voltic to complete the transfer.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -66,18 +66,23 @@
     color: var(--soft); max-width: 40ch;
   }
 
-  .cta { margin-top: 34px; display: flex; justify-content: center; }
+  .cta {
+    margin-top: 34px;
+    display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+  }
   .btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 10px;
-    padding: 15px 30px; border-radius: 999px;
-    font-size: 1rem; font-weight: 600; text-decoration: none;
-    background: var(--gold); color: var(--ink);
+    padding: 15px 28px; border-radius: 999px;
+    font-size: .98rem; font-weight: 600; text-decoration: none;
     transition: background-color .2s ease, transform .1s ease;
     -webkit-tap-highlight-color: transparent;
-    border: 0;
+    border: 1px solid transparent;
   }
-  .btn:hover { background: var(--gold-deep); }
   .btn:active { transform: scale(.97); }
+  .btn-gold { background: var(--gold); color: var(--ink); border-color: transparent; }
+  .btn-gold:hover { background: var(--gold-deep); }
+  .btn-line { color: var(--ink); border-color: var(--line); }
+  .btn-line:hover { background: rgba(5,5,5,.06); }
   .btn svg { width: 18px; height: 18px; flex: none; }
 
   .fine {
@@ -102,7 +107,8 @@
   @media (max-width: 480px) {
     .mark { width: 68px; height: 68px; }
     .lede { font-size: 1rem; }
-    .btn { width: 100%; }
+    .cta { flex-direction: column; }
+    .cta .btn { width: 100%; }
   }
 </style>
 </head>
@@ -126,11 +132,11 @@
   <h1 class="rise d2">You need Voltic to pay.</h1>
 
   <p class="lede rise d3">
-    This link opens in the Voltic app. Tap over NFC or scan a QR code - straight from your wallet to theirs. No custodian, no forms, no middleman.
+    This link opens in the Voltic app. Tap over NFC or scan a QR code — straight from your wallet to theirs. No custodian, no forms, no middleman.
   </p>
 
   <div class="cta rise d4">
-    <a class="btn" href="https://github.com/Voltic-Pay/Voltic-App/releases">
+    <a class="btn btn-gold" href="https://github.com/Voltic-Pay/Voltic-App/releases">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M12 3v12"/>
         <path d="m7 10 5 5 5-5"/>
@@ -138,10 +144,17 @@
       </svg>
       Download Voltic
     </a>
+    <a class="btn btn-line" href="/">
+      Learn more
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M5 12h14"/>
+        <path d="m12 5 7 7-7 7"/>
+      </svg>
+    </a>
   </div>
 
   <p class="fine rise d5">
-    Self-custodial <span>·</span> Easy 2 use <span>·</span> GPL-3.0
+    Self-custodial <span>·</span> Arbitrum <span>·</span> GPL-3.0
   </p>
 
 </main>
