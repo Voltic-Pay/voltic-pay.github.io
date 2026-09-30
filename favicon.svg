@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="14" fill="#dbdbdb"/>
+  <g transform="translate(32,32.5) scale(0.78)">
+    <path fill="#ffb800" d="M 0,-30 L -18,0 L 0,-5 Z"/>
+    <path fill="#050505" d="M 0,-30 L 18,0 L 0,0 Z"/>
+    <path fill="#ffb800" d="M -18,0 L 6,0 L 18,0 L 0,-6 Z"/>
+    <path fill="#050505" d="M -18,3 L 0,9 L 0,28 Z"/>
+    <path fill="#e5a400" d="M 0,5 L 18,0 L 0,28 Z"/>
+    <path fill="#ffb800" d="M -18,0 L 6,0 L 18,0 L 0,6 Z"/>
+  </g>
+</svg>
