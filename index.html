@@ -4,7 +4,36 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="google-site-verification" content="7-wgBoclTlXRkOeR1Z9fcV_nUZpeXagiD9WbGPF6QAU" />
-<title>Voltic — tap to pay, self-custodial</title>
+<title>Voltic: Self-Custodial Ethereum Tap-to-Pay Wallet for Android</title>
+<meta name="description" content="Voltic Pay: free, open-source, self-custodial Ethereum wallet for Android. Pay with ETH by NFC tap or QR on Arbitrum. No custodian, no KYC.">
+<link rel="canonical" href="https://voltic-pay.github.io/">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#dbdbdb">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Voltic">
+<meta property="og:title" content="Voltic: Self-Custodial Ethereum Tap-to-Pay Wallet for Android">
+<meta property="og:description" content="Open-source Ethereum payments by NFC tap or QR, on Arbitrum. Your keys, your wallet, no middleman.">
+<meta property="og:url" content="https://voltic-pay.github.io/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Voltic: Self-Custodial Ethereum Tap-to-Pay Wallet for Android">
+<meta name="twitter:description" content="Open-source Ethereum payments by NFC tap or QR, on Arbitrum. Your keys, your wallet, no middleman.">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Voltic",
+  "alternateName": "Voltic Pay",
+  "description": "Free, open-source, self-custodial Ethereum wallet for Android with NFC tap-to-pay and QR payments in ETH on Arbitrum, an Ethereum layer 2.",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Android",
+  "url": "https://voltic-pay.github.io/",
+  "downloadUrl": "https://github.com/Voltic-Pay/Voltic-App/releases",
+  "license": "https://www.gnu.org/licenses/gpl-3.0.html",
+  "isAccessibleForFree": true,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "sameAs": ["https://github.com/Voltic-Pay/Voltic-App"]
+}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -158,14 +187,14 @@
           <path fill="#e5a400" d="M 0,5 L 18,0 L 0,28 Z"/><path fill="#ffb800" d="M -18,0 L 6,0 L 18,0 L 0,6 Z"/>
         </g></svg>
         <h1>Tap to pay. Nothing in between.</h1>
-        <p class="lede">Voltic turns your phone into a card for crypto. Tap over NFC or scan a QR code, straight from your wallet to theirs. No processor, no custodian, no forms.</p>
+        <p class="lede">Voltic is an open-source, self-custodial Ethereum wallet for Android that . Tap over NFC or scan a QR code to pay in ETH on Arbitrum, straight from your wallet to theirs. No processor, no custodian, no forms.</p>
         <div class="cta">
           <a class="btn btn-gold" href="https://github.com/Voltic-Pay/Voltic-App/releases">Download the APK</a>
           <a class="btn btn-line" href="https://github.com/Voltic-Pay/Voltic-App">View on GitHub</a>
         </div>
         <ul class="facts">
           <li><b>NFC + QR</b>two ways to pay</li>
-          <li><b>Arbitrum</b>one network, done well</li>
+          <li><b>Arbitrum</b>Ethereum L2, done well</li>
           <li><b>GPL-3.0</b>free and open source</li>
         </ul>
       </div>
@@ -179,7 +208,7 @@
           <li><h3>True P2P privacy</h3><p>Payments go directly between two wallets. Nobody logs your spending.</p></li>
           <li><h3>Zero middleman fees</h3><p>No 2% processor cut. What you send is what they get.</p></li>
           <li><h3>KYC-free</h3><p>No ID checks or onboarding forms.</p></li>
-          <li><h3>One network</h3><p>Arbitrum only, so it stays simple.</p></li>
+          <li><h3>One network</h3><p>Arbitrum (an Ethereum layer 2) only, so it stays simple.</p></li>
           <li><h3>Full self-custody</h3><p>Only your seed phrase controls the wallet.</p></li>
           <li><h3>Bring your wallet</h3><p>Import your seed phrase and your balance follows.</p></li>
         </ul>
@@ -214,8 +243,8 @@
       <div class="pin">
         <h2>Build it yourself</h2>
         <pre><span class="c"># clone and build from source</span>
-git clone https://github.com/voltic-pay/voltic.git
-cd voltic
+git clone https://github.com/Voltic-Pay/Voltic-App.git
+cd Voltic-App
 <span class="c"># add your Arbiscan key for tx history (optional)</span>
 echo "ARBISCAN_API_KEY=your_key" >> local.properties
 ./gradlew assembleDebug</pre>
@@ -229,7 +258,7 @@ echo "ARBISCAN_API_KEY=your_key" >> local.properties
 </div>
 
 <footer>
-  <span>Voltic — GPL-3.0 licensed.</span>
+  <span>Voltic. GPL-3.0 licensed.</span>
   <nav>
     <a href="https://github.com/Voltic-Pay/Voltic-App">Source</a>
     <a href="https://github.com/Voltic-Pay/Voltic-App/blob/master/CONTRIBUTING.md">Contribute</a>
@@ -402,7 +431,7 @@ echo "ARBISCAN_API_KEY=your_key" >> local.properties
   window.addEventListener('scroll', kick, { passive: true });
 
   // ==========================================================================
-  // WHEEL — desktop: one tick = one section
+  // WHEEL - desktop: one tick = one section
   // ==========================================================================
   let wheelAccum = 0;
   let wheelResetTimer = 0;
@@ -476,11 +505,11 @@ echo "ARBISCAN_API_KEY=your_key" >> local.properties
   });
 
   // ==========================================================================
-  // TOUCH — mobile: one deliberate swipe = one section
+  // TOUCH - mobile: one deliberate swipe = one section
   // ==========================================================================
   // Native touch scroll runs during the gesture (so you get tactile feedback),
   // and at touchend we decide which direction you meant and tween exactly one
-  // section in that direction. No more "fight the watcher" — any real swipe
+  // section in that direction. No more "fight the watcher" - any real swipe
   // advances, however gently.
   let touching = false;
   let touchStartY = 0;
@@ -509,7 +538,7 @@ echo "ARBISCAN_API_KEY=your_key" >> local.properties
     const dt = Math.max(1, performance.now() - touchStartT);
     const velocity = Math.abs(touchDelta) / dt;      // px / ms
 
-    // Tiny tap or jitter — ignore, let it stay put
+    // Tiny tap or jitter - ignore, let it stay put
     if (Math.abs(touchDelta) < SWIPE_MIN_DIST && velocity < SWIPE_MIN_VEL) return;
 
     const p = rawP();
@@ -538,7 +567,7 @@ echo "ARBISCAN_API_KEY=your_key" >> local.properties
   }, { passive: true });
 
   // ==========================================================================
-  // VELOCITY WATCHER — fallback for non-touch, non-wheel scrolling
+  // VELOCITY WATCHER - fallback for non-touch, non-wheel scrolling
   // (scrollbar drag, programmatic, scrollbar on touch when JS is slow)
   // ==========================================================================
   let prevY = window.scrollY;
@@ -555,7 +584,7 @@ echo "ARBISCAN_API_KEY=your_key" >> local.properties
     vel = vel * 0.6 + instVel * 0.4;
     prevY = y; prevT = now;
 
-    // Stay completely out of the way during and right after a touch —
+    // Stay completely out of the way during and right after a touch -
     // the touchend handler owns the settle in that case.
     if (touching || now - lastTouchEnd < 150) {
       idleFrames = 0;
