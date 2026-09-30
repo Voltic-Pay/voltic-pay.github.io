@@ -136,6 +136,11 @@
   .panel.first .pin > :nth-child(5) { animation-delay: .32s; }
   @keyframes rise { from { opacity: 0; transform: translateY(16px); } }
 
+  /* touch devices: let the browser own momentum + snapping (no JS fighting it) */
+  html.snap { scroll-snap-type: y mandatory; overscroll-behavior-y: none; }
+  .snap-pt { position: absolute; left: 0; width: 1px; height: 1px; pointer-events: none; scroll-snap-align: start; scroll-snap-stop: always; }
+  html.snap footer { scroll-snap-align: end; }
+
   footer { border-top: 1px solid var(--line); padding: 28px; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-size: .85rem; color: var(--soft); }
   footer nav { display: flex; gap: 20px; }
   footer a { text-decoration: none; }
@@ -277,13 +282,17 @@ echo "ARBISCAN_API_KEY=your_key" >> local.properties
   const pins   = panels.map(p => p.firstElementChild);
   const N      = panels.length;
 
+  // Touch phones/tablets: native scroll-snap does the settling. Desktop keeps the JS stepping.
+  const native = matchMedia('(hover: none) and (pointer: coarse)').matches;
+  if (native) document.documentElement.classList.add('snap');
+
   // ---- tuning ------------------------------------------------------------
   const SCROLL_PER_SECTION = 0.5;
   const FLIP_DEG  = 65;
   const FLIP_DIR  = -1;
   const SHRINK    = 0.10;
   const FADE      = 1.05;
-  const LERP = 0.5;
+  const LERP = native ? 1 : 0.5;   // no extra smoothing on touch: native momentum is already smooth
 
   const WHEEL_ACCUM_THRESHOLD = 18;
   const WHEEL_RESET_MS = 180;
@@ -320,12 +329,20 @@ echo "ARBISCAN_API_KEY=your_key" >> local.properties
   let S = 0;
   let top0 = 0, small = innerWidth <= 760;
 
+  const snapPts = native ? panels.map(() => {
+    const d = document.createElement('i');
+    d.className = 'snap-pt';
+    track.appendChild(d);
+    return d;
+  }) : [];
+
   function measure() {
     H = stage.clientHeight;
     S = H * SCROLL_PER_SECTION;
     small = innerWidth <= 760;
     track.style.height = (H + (N - 1 + 0.5) * S) + 'px';
     top0 = track.getBoundingClientRect().top + window.scrollY;
+    snapPts.forEach((d, i) => { d.style.top = (i * S) + 'px'; });
   }
 
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
@@ -374,7 +391,9 @@ echo "ARBISCAN_API_KEY=your_key" >> local.properties
     tweenRaf = requestAnimationFrame(step);
   }
 
-  const go = i => tweenTo(i, CLICK_DURATION);
+  const go = i => native
+    ? window.scrollTo({ top: top0 + i * S, behavior: 'smooth' })
+    : tweenTo(i, CLICK_DURATION);
   document.querySelectorAll('[data-go]').forEach(a =>
     a.addEventListener('click', e => { e.preventDefault(); go(+a.dataset.go); })
   );
@@ -433,6 +452,7 @@ echo "ARBISCAN_API_KEY=your_key" >> local.properties
   function kick() { if (!raf) raf = requestAnimationFrame(loop); }
   window.addEventListener('scroll', kick, { passive: true });
 
+  if (!native) {
   // ==========================================================================
   // WHEEL - desktop: one tick = one section
   // ==========================================================================
@@ -617,6 +637,7 @@ echo "ARBISCAN_API_KEY=your_key" >> local.properties
     requestAnimationFrame(watch);
   }
   requestAnimationFrame(watch);
+  }
 
   window.addEventListener('resize', () => { measure(); cur = progress(); render(cur); });
 
