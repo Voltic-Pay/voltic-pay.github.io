@@ -9,7 +9,6 @@
 <link rel="canonical" href="https://voltic-pay.github.io/">
 <link rel="icon" href="/favicon.ico" sizes="48x48">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="robots" content="index, follow">
 <meta name="theme-color" content="#dbdbdb">
 <meta property="og:type" content="website">
@@ -48,22 +47,16 @@
     --left: 170px;
   }
   * { box-sizing: border-box; }
-  html { overflow-x: clip; }
+  html { overflow-x: clip; scroll-behavior: smooth; }
   body { margin: 0; background: var(--bg); color: var(--ink); font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; -webkit-font-smoothing: antialiased; overflow-x: clip; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
   a { color: inherit; }
   h1, h2, h3 { font-family: 'Space Grotesk', ui-sans-serif, sans-serif; margin: 0; line-height: 1.05; }
   code, pre { font-family: 'JetBrains Mono', ui-monospace, monospace; }
   button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
   :focus-visible { outline: 2px solid var(--gold-deep); outline-offset: 3px; border-radius: 6px; }
 
-  .track { position: relative; height: calc(var(--n, 5.5) * 100vh); height: calc(var(--n, 5.5) * 100svh); }
-  .stage {
-    position: sticky; top: 0;
-    height: 100vh; height: 100svh;
-    overflow: hidden;
-  }
-
-  .bar { position: absolute; inset: 0 0 auto 0; z-index: 20; height: var(--top); padding: env(safe-area-inset-top, 0px) 28px 0; display: flex; align-items: center; justify-content: space-between; }
+  .bar { position: fixed; inset: 0 0 auto 0; z-index: 30; height: var(--top); padding: env(safe-area-inset-top, 0px) 28px 0; display: flex; align-items: center; justify-content: space-between; background: var(--bg); }
   .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; text-decoration: none; }
   .brand svg { width: 26px; height: 26px; }
   .btn { display: inline-flex; align-items: center; padding: 11px 22px; border-radius: 999px; font-size: .92rem; font-weight: 600; text-decoration: none; border: 1px solid transparent; transition: background-color .2s ease; }
@@ -72,7 +65,8 @@
   .btn-line { border-color: var(--line); }
   .btn-line:hover { background: rgba(5,5,5,.06); }
 
-  .rail { position: absolute; z-index: 20; left: 40px; top: 22%; bottom: 18%; width: 2px; opacity: 0; pointer-events: none; transition: opacity .35s ease; }
+  /* progress rail */
+  .rail { position: fixed; z-index: 20; left: 40px; top: 22%; bottom: 18%; width: 2px; opacity: 0; pointer-events: none; transition: opacity .35s ease; }
   .rail.show { opacity: 1; pointer-events: auto; }
   .rail .base, .rail .fill { position: absolute; inset: 0; background: var(--line); }
   .rail .fill { background: var(--gold); transform-origin: top; transform: scaleY(0); }
@@ -89,22 +83,14 @@
   .ri.on .lab { color: var(--ink); font-weight: 700; }
   .ri .hit { position: absolute; left: -14px; top: -14px; width: 28px; height: 28px; }
 
+  /* sections: plain full-height blocks, native scrolling */
   .panel {
-    position: absolute; inset: 0;
+    position: relative;
+    min-height: 100vh; min-height: 100svh;
     padding: var(--top) 40px 48px var(--left);
     display: flex; align-items: center;
-    background: var(--bg);
-    perspective: 1200px;
-    perspective-origin: 50% 50%;
-    will-change: transform;
-    visibility: hidden;
   }
-  .pin {
-    width: 100%; max-width: 640px; min-width: 0;
-    transform-origin: 50% 50%;
-    backface-visibility: hidden;
-    will-change: transform, opacity;
-  }
+  .pin { width: 100%; max-width: 640px; min-width: 0; }
   .panel h2 { font-size: clamp(2rem, 4.4vw, 3.2rem); letter-spacing: -.01em; }
   .panel h1 { font-size: clamp(2.4rem, 5.6vw, 4.2rem); letter-spacing: -.015em; max-width: 12ch; }
   .lede { margin: 18px 0 0; font-size: 1.12rem; color: var(--soft); max-width: 44ch; line-height: 1.5; }
@@ -125,7 +111,7 @@
   .note { margin: 16px 0 0; font-size: .9rem; color: var(--soft); max-width: 52ch; line-height: 1.5; }
   code { overflow-wrap: anywhere; }
 
-  .hint { position: absolute; right: 40px; bottom: calc(22px + env(safe-area-inset-bottom, 0px)); z-index: 20; font-size: .8rem; color: var(--soft); display: flex; align-items: center; gap: 10px; transition: opacity .3s ease; }
+  .hint { position: fixed; right: 40px; bottom: calc(22px + env(safe-area-inset-bottom, 0px)); z-index: 20; font-size: .8rem; color: var(--soft); display: flex; align-items: center; gap: 10px; transition: opacity .3s ease; pointer-events: none; }
   .hint i { display: block; width: 1px; height: 28px; background: var(--ink); transform-origin: top; animation: drip 1.6s ease-in-out infinite; }
   @keyframes drip { 0% { transform: scaleY(0); } 60% { transform: scaleY(1); opacity: 1; } 100% { transform: scaleY(1); opacity: 0; } }
 
@@ -135,11 +121,6 @@
   .panel.first .pin > :nth-child(4) { animation-delay: .24s; }
   .panel.first .pin > :nth-child(5) { animation-delay: .32s; }
   @keyframes rise { from { opacity: 0; transform: translateY(16px); } }
-
-  /* touch devices: let the browser own momentum + snapping (no JS fighting it) */
-  html.snap { scroll-snap-type: y mandatory; overscroll-behavior-y: none; }
-  .snap-pt { position: absolute; left: 0; width: 1px; height: 1px; pointer-events: none; scroll-snap-align: start; scroll-snap-stop: always; }
-  html.snap footer { scroll-snap-align: end; }
 
   footer { border-top: 1px solid var(--line); padding: 28px; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-size: .85rem; color: var(--soft); }
   footer nav { display: flex; gap: 20px; }
@@ -168,102 +149,99 @@
 </head>
 <body>
 
-<div class="track" id="track">
-  <div class="stage" id="stage">
+<div class="bar">
+  <a class="brand" href="#" data-go="0">
+    <svg viewBox="0 0 108 108" aria-hidden="true"><g transform="translate(54,54)">
+      <path fill="#ffb800" d="M 0,-30 L -18,0 L 0,-5 Z"/><path fill="#050505" d="M 0,-30 L 18,0 L 0,0 Z"/>
+      <path fill="#ffb800" d="M -18,0 L 6,0 L 18,0 L 0,-6 Z"/><path fill="#050505" d="M -18,3 L 0,9 L 0,28 Z"/>
+      <path fill="#e5a400" d="M 0,5 L 18,0 L 0,28 Z"/><path fill="#ffb800" d="M -18,0 L 6,0 L 18,0 L 0,6 Z"/>
+    </g></svg>
+    Voltic
+  </a>
+  <a class="btn btn-gold" href="https://github.com/Voltic-Pay/Voltic-App/releases">Download</a>
+</div>
 
-    <div class="bar">
-      <a class="brand" href="#" data-go="0">
-        <svg viewBox="0 0 108 108" aria-hidden="true"><g transform="translate(54,54)">
-          <path fill="#ffb800" d="M 0,-30 L -18,0 L 0,-5 Z"/><path fill="#050505" d="M 0,-30 L 18,0 L 0,0 Z"/>
-          <path fill="#ffb800" d="M -18,0 L 6,0 L 18,0 L 0,-6 Z"/><path fill="#050505" d="M -18,3 L 0,9 L 0,28 Z"/>
-          <path fill="#e5a400" d="M 0,5 L 18,0 L 0,28 Z"/><path fill="#ffb800" d="M -18,0 L 6,0 L 18,0 L 0,6 Z"/>
-        </g></svg>
-        Voltic
-      </a>
-      <a class="btn btn-gold" href="https://github.com/Voltic-Pay/Voltic-App/releases">Download</a>
+<nav class="rail" id="rail" aria-label="Sections">
+  <div class="base"></div><div class="fill" id="fill"></div>
+</nav>
+
+<main>
+  <section class="panel first" data-title="Tap to pay">
+    <div class="pin">
+      <svg class="mark" viewBox="0 0 108 108" aria-hidden="true"><g transform="translate(54,54)">
+        <path fill="#ffb800" d="M 0,-30 L -18,0 L 0,-5 Z"/><path fill="#050505" d="M 0,-30 L 18,0 L 0,0 Z"/>
+        <path fill="#ffb800" d="M -18,0 L 6,0 L 18,0 L 0,-6 Z"/><path fill="#050505" d="M -18,3 L 0,9 L 0,28 Z"/>
+        <path fill="#e5a400" d="M 0,5 L 18,0 L 0,28 Z"/><path fill="#ffb800" d="M -18,0 L 6,0 L 18,0 L 0,6 Z"/>
+      </g></svg>
+      <h1>Tap to pay. Nothing in between.</h1>
+      <p class="lede">Voltic is an open-source, self-custodial Ethereum wallet for Android that . Tap over NFC or scan a QR code to pay in ETH on Arbitrum, straight from your wallet to theirs. No processor, no custodian, no forms.</p>
+      <div class="cta">
+        <a class="btn btn-gold" href="https://github.com/Voltic-Pay/Voltic-App/releases">Download the APK</a>
+        <a class="btn btn-line" href="https://github.com/Voltic-Pay/Voltic-App">View on GitHub</a>
+      </div>
+      <ul class="facts">
+        <li><b>NFC + QR</b>two ways to pay</li>
+        <li><b>Arbitrum</b>Ethereum L2, done well</li>
+        <li><b>GPL-3.0</b>free and open source</li>
+      </ul>
     </div>
+  </section>
 
-    <nav class="rail" id="rail" aria-label="Sections">
-      <div class="base"></div><div class="fill" id="fill"></div>
-    </nav>
+  <section class="panel" data-title="Why Voltic">
+    <div class="pin">
+      <h2>Built for paying, not trading</h2>
+      <p class="lede">Self-custodial by default. Voltic never holds your keys or routes a payment through a company.</p>
+      <ul class="rows">
+        <li><h3>True P2P privacy</h3><p>Payments go directly between two wallets. Nobody logs your spending.</p></li>
+        <li><h3>Zero middleman fees</h3><p>No 2% processor cut. What you send is what they get.</p></li>
+        <li><h3>KYC-free</h3><p>No ID checks or onboarding forms.</p></li>
+        <li><h3>One network</h3><p>Arbitrum (an Ethereum layer 2) only, so it stays simple.</p></li>
+        <li><h3>Full self-custody</h3><p>Only your seed phrase controls the wallet.</p></li>
+        <li><h3>Bring your wallet</h3><p>Import your seed phrase and your balance follows.</p></li>
+      </ul>
+    </div>
+  </section>
 
-    <section class="panel first" data-title="Tap to pay">
-      <div class="pin">
-        <svg class="mark" viewBox="0 0 108 108" aria-hidden="true"><g transform="translate(54,54)">
-          <path fill="#ffb800" d="M 0,-30 L -18,0 L 0,-5 Z"/><path fill="#050505" d="M 0,-30 L 18,0 L 0,0 Z"/>
-          <path fill="#ffb800" d="M -18,0 L 6,0 L 18,0 L 0,-6 Z"/><path fill="#050505" d="M -18,3 L 0,9 L 0,28 Z"/>
-          <path fill="#e5a400" d="M 0,5 L 18,0 L 0,28 Z"/><path fill="#ffb800" d="M -18,0 L 6,0 L 18,0 L 0,6 Z"/>
-        </g></svg>
-        <h1>Tap to pay. Nothing in between.</h1>
-        <p class="lede">Voltic is an open-source, self-custodial Ethereum wallet for Android that . Tap over NFC or scan a QR code to pay in ETH on Arbitrum, straight from your wallet to theirs. No processor, no custodian, no forms.</p>
-        <div class="cta">
-          <a class="btn btn-gold" href="https://github.com/Voltic-Pay/Voltic-App/releases">Download the APK</a>
-          <a class="btn btn-line" href="https://github.com/Voltic-Pay/Voltic-App">View on GitHub</a>
-        </div>
-        <ul class="facts">
-          <li><b>NFC + QR</b>two ways to pay</li>
-          <li><b>Arbitrum</b>Ethereum L2, done well</li>
-          <li><b>GPL-3.0</b>free and open source</li>
-        </ul>
-      </div>
-    </section>
+  <section class="panel" data-title="Features">
+    <div class="pin">
+      <h2>What's in the app</h2>
+      <ul class="rows">
+        <li><h3>Tap or scan</h3><p>Tap for the familiar contactless feel, or scan a code when NFC isn't an option.</p></li>
+        <li><h3>Hybrid offline NFC</h3><p>Sign a payment with no connection. The merchant's phone broadcasts it once it's online.</p></li>
+        <li><h3>Material 3 Expressive</h3><p>A bold, bank-grade interface, not a spreadsheet with a wallet bolted on.</p></li>
+        <li><h3>Biometric-gated backup</h3><p>Your seed phrase and other sensitive actions sit behind a fingerprint or face check.</p></li>
+      </ul>
+    </div>
+  </section>
 
-    <section class="panel" data-title="Why Voltic">
-      <div class="pin">
-        <h2>Built for paying, not trading</h2>
-        <p class="lede">Self-custodial by default. Voltic never holds your keys or routes a payment through a company.</p>
-        <ul class="rows">
-          <li><h3>True P2P privacy</h3><p>Payments go directly between two wallets. Nobody logs your spending.</p></li>
-          <li><h3>Zero middleman fees</h3><p>No 2% processor cut. What you send is what they get.</p></li>
-          <li><h3>KYC-free</h3><p>No ID checks or onboarding forms.</p></li>
-          <li><h3>One network</h3><p>Arbitrum (an Ethereum layer 2) only, so it stays simple.</p></li>
-          <li><h3>Full self-custody</h3><p>Only your seed phrase controls the wallet.</p></li>
-          <li><h3>Bring your wallet</h3><p>Import your seed phrase and your balance follows.</p></li>
-        </ul>
-      </div>
-    </section>
+  <section class="panel" data-title="Install">
+    <div class="pin">
+      <h2>Up and running in four steps</h2>
+      <ol class="steps">
+        <li><span><b>Download the APK</b> from the GitHub releases page. Android will warn you it's from outside the Play Store; that's expected for an early build.</span></li>
+        <li><span><b>Create a wallet</b> in the app, or restore one with an existing seed phrase.</span></li>
+        <li><span><b>Fund it with ETH on Arbitrum.</b> Bridge or swap into the account address on your dashboard.</span></li>
+        <li><span><b>Tap or scan</b> to pay. That's the whole app.</span></li>
+      </ol>
+    </div>
+  </section>
 
-    <section class="panel" data-title="Features">
-      <div class="pin">
-        <h2>What's in the app</h2>
-        <ul class="rows">
-          <li><h3>Tap or scan</h3><p>Tap for the familiar contactless feel, or scan a code when NFC isn't an option.</p></li>
-          <li><h3>Hybrid offline NFC</h3><p>Sign a payment with no connection. The merchant's phone broadcasts it once it's online.</p></li>
-          <li><h3>Material 3 Expressive</h3><p>A bold, bank-grade interface, not a spreadsheet with a wallet bolted on.</p></li>
-          <li><h3>Biometric-gated backup</h3><p>Your seed phrase and other sensitive actions sit behind a fingerprint or face check.</p></li>
-        </ul>
-      </div>
-    </section>
-
-    <section class="panel" data-title="Install">
-      <div class="pin">
-        <h2>Up and running in four steps</h2>
-        <ol class="steps">
-          <li><span><b>Download the APK</b> from the GitHub releases page. Android will warn you it's from outside the Play Store; that's expected for an early build.</span></li>
-          <li><span><b>Create a wallet</b> in the app, or restore one with an existing seed phrase.</span></li>
-          <li><span><b>Fund it with ETH on Arbitrum.</b> Bridge or swap into the account address on your dashboard.</span></li>
-          <li><span><b>Tap or scan</b> to pay. That's the whole app.</span></li>
-        </ol>
-      </div>
-    </section>
-
-    <section class="panel" data-title="Build it">
-      <div class="pin">
-        <h2>Build it yourself</h2>
-        <pre><span class="c"># clone and build from source</span>
+  <section class="panel" data-title="Build it">
+    <div class="pin">
+      <h2>Build it yourself</h2>
+      <pre><span class="c"># clone and build from source</span>
 git clone https://github.com/Voltic-Pay/Voltic-App.git
 cd Voltic-App
 <span class="c"># add your Arbiscan key for tx history (optional)</span>
 echo "ARBISCAN_API_KEY=your_key" >> local.properties
 ./gradlew assembleDebug</pre>
-        <p class="note">Needs Android Studio Ladybug+, JDK 17+, and an NFC-capable device to test tap-to-pay. To deploy your own version of the payment contract, see the README inside <code>/contracts</code>.</p>
-        <div class="cta"><a class="btn btn-line" href="https://github.com/Voltic-Pay/Voltic-App">Source on GitHub</a></div>
-      </div>
-    </section>
+      <p class="note">Needs Android Studio Ladybug+, JDK 17+, and an NFC-capable device to test tap-to-pay. To deploy your own version of the payment contract, see the README inside <code>/contracts</code>.</p>
+      <div class="cta"><a class="btn btn-line" href="https://github.com/Voltic-Pay/Voltic-App">Source on GitHub</a></div>
+    </div>
+  </section>
+</main>
 
-    <div class="hint" id="hint"><i></i>Scroll</div>
-  </div>
-</div>
+<div class="hint" id="hint"><i></i>Scroll</div>
 
 <footer>
   <span>Voltic. GPL-3.0 licensed.</span>
@@ -277,162 +255,63 @@ echo "ARBISCAN_API_KEY=your_key" >> local.properties
 <script>
 (() => {
   const $ = id => document.getElementById(id);
-  const track = $('track'), stage = $('stage'), rail = $('rail'), fill = $('fill'), hint = $('hint');
+  const rail = $('rail'), fill = $('fill'), hint = $('hint');
   const panels = [...document.querySelectorAll('.panel')];
-  const pins   = panels.map(p => p.firstElementChild);
-  const N      = panels.length;
+  const footer = document.querySelector('footer');
+  const N = panels.length;
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 
-  // Touch phones/tablets: native scroll-snap does the settling. Desktop keeps the JS stepping.
-  const native = matchMedia('(hover: none) and (pointer: coarse)').matches;
-  if (native) document.documentElement.classList.add('snap');
-
-  // ---- tuning ------------------------------------------------------------
-  const SCROLL_PER_SECTION = 0.5;
-  const FLIP_DEG  = 65;
-  const FLIP_DIR  = -1;
-  const SHRINK    = 0.10;
-  const FADE      = 1.05;
-  const LERP = native ? 1 : 0.5;   // no extra smoothing on touch: native momentum is already smooth
-
-  const WHEEL_ACCUM_THRESHOLD = 18;
-  const WHEEL_RESET_MS = 180;
-
-  const CLICK_DURATION   = 380;
-  const WHEEL_DURATION   = 380;
-  const TOUCH_DURATION   = 280;
-
-  const VEL_THRESHOLD = 0.2;
-  const IDLE_FRAMES   = 3;
-
-  const FOOTER_MARGIN = 0.15;
-
-  // Touch swipe tuning (px). Any swipe bigger than this advances a section.
-  const SWIPE_MIN_DIST = 20;
-  const SWIPE_MIN_VEL  = 0.35;   // px/ms
-  // ------------------------------------------------------------------------
-
-  panels.forEach((el, i) => el.style.zIndex = i + 1);
-
+  // rail dots: click = native smooth scroll to that section
   const items = panels.map((p, i) => {
     const b = document.createElement('button');
     b.className = 'ri';
     b.style.setProperty('--f', i / (N - 1));
     b.setAttribute('aria-label', p.dataset.title);
     b.innerHTML = '<span class="hit"></span><span class="dot"></span><span class="lab">' + p.dataset.title + '</span>';
-    b.addEventListener('click', () => go(i));
+    b.addEventListener('click', () => panels[i].scrollIntoView({ behavior: 'smooth' }));
     rail.appendChild(b);
     return b;
   });
 
-  // ---------- measurements ----------
-  let H = stage.clientHeight;
-  let S = 0;
-  let top0 = 0, small = innerWidth <= 760;
-
-  const snapPts = native ? panels.map(() => {
-    const d = document.createElement('i');
-    d.className = 'snap-pt';
-    track.appendChild(d);
-    return d;
-  }) : [];
-
-  function measure() {
-    H = stage.clientHeight;
-    S = H * SCROLL_PER_SECTION;
-    small = innerWidth <= 760;
-    track.style.height = (H + (N - 1 + 0.5) * S) + 'px';
-    top0 = track.getBoundingClientRect().top + window.scrollY;
-    snapPts.forEach((d, i) => { d.style.top = (i * S) + 'px'; });
-  }
-
-  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
-  const rawP = () => (window.scrollY - top0) / S;
-  const progress = () => clamp(rawP(), 0, N - 1);
-
-  let currentSection = 0;
-
-  // ---------- tween ----------
-  let tweenRaf = 0;
-  let animating = false;
-
-  function cancelTween() {
-    if (tweenRaf) cancelAnimationFrame(tweenRaf);
-    tweenRaf = 0;
-    animating = false;
-  }
-
-  function tweenTo(sectionIndex, duration) {
-    cancelTween();
-    sectionIndex = clamp(sectionIndex, 0, N - 1);
-    currentSection = sectionIndex;
-    const start = window.scrollY;
-    const target = top0 + sectionIndex * S;
-    const dist = target - start;
-    if (Math.abs(dist) < 0.5) return;
-
-    if (duration == null) {
-      duration = Math.min(600, Math.max(240, Math.abs(dist) * 0.85));
-    }
-
-    animating = true;
-    const t0 = performance.now();
-    function step(now) {
-      if (!animating) return;
-      const t = Math.min(1, (now - t0) / duration);
-      const e = 1 - Math.pow(1 - t, 3);
-      window.scrollTo({ top: start + dist * e, behavior: 'auto' });
-      if (t < 1) {
-        tweenRaf = requestAnimationFrame(step);
-      } else {
-        tweenRaf = 0;
-        animating = false;
-      }
-    }
-    tweenRaf = requestAnimationFrame(step);
-  }
-
-  const go = i => native
-    ? window.scrollTo({ top: top0 + i * S, behavior: 'smooth' })
-    : tweenTo(i, CLICK_DURATION);
   document.querySelectorAll('[data-go]').forEach(a =>
-    a.addEventListener('click', e => { e.preventDefault(); go(+a.dataset.go); })
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      panels[+a.dataset.go].scrollIntoView({ behavior: 'smooth' });
+    })
   );
 
-  // ---------- render ----------
+  let tops = [], H = innerHeight, small = innerWidth <= 760;
+  function measure() {
+    H = innerHeight;
+    small = innerWidth <= 760;
+    tops = panels.map(p => p.getBoundingClientRect().top + window.scrollY);
+  }
+
+  // continuous section index: 0 = top of first panel, N-1 = top of last panel
+  function progress() {
+    const y = window.scrollY;
+    if (y <= tops[0]) return 0;
+    let i = 0;
+    for (let k = 0; k < N; k++) if (tops[k] <= y) i = k;
+    if (i >= N - 1) return N - 1;
+    return i + (y - tops[i]) / (tops[i + 1] - tops[i]);
+  }
+
   let active = -1, railShown = null;
-  function render(p) {
-    for (let i = 0; i < N; i++) {
-      const el = panels[i], pin = pins[i];
-      const d  = i - p;
-      const ad = Math.abs(d);
-      if (ad >= 1.001) {
-        if (el.style.visibility !== 'hidden') {
-          el.style.visibility = 'hidden';
-          el.style.pointerEvents = 'none';
-        }
-        continue;
-      }
-      if (el.style.visibility !== 'visible') el.style.visibility = 'visible';
-      el.style.pointerEvents = ad < .5 ? 'auto' : 'none';
-
-      el.style.transform = 'translate3d(0,' + (d * 100).toFixed(3) + '%,0)';
-      const angle = d * FLIP_DEG * FLIP_DIR;
-      const scale = 1 - ad * SHRINK;
-      pin.style.transform =
-        'rotateX(' + angle.toFixed(2) + 'deg) scale(' + scale.toFixed(3) + ')';
-      pin.style.opacity = Math.max(0, 1 - ad * ad * FADE).toFixed(3);
-    }
-
+  function update() {
+    const p = progress();
     const f = p / (N - 1);
     fill.style.transform = small ? 'scaleX(' + f + ')' : 'scaleY(' + f + ')';
 
-    const show = p > 0.12;
+    // show after leaving the top, hide again once the footer comes into view
+    const show = p > 0.12 && footer.getBoundingClientRect().top > H * 0.85;
     if (show !== railShown) {
       railShown = show;
       rail.classList.toggle('show', show);
-      hint.style.opacity = show ? '0' : '1';
     }
-    const a = Math.round(p);
+    hint.style.opacity = window.scrollY > H * 0.06 ? '0' : '1';
+
+    const a = clamp(Math.round(p), 0, N - 1);
     if (a !== active) {
       if (active > -1) { items[active].classList.remove('on'); items[active].removeAttribute('aria-current'); }
       items[a].classList.add('on'); items[a].setAttribute('aria-current', 'true');
@@ -440,213 +319,19 @@ echo "ARBISCAN_API_KEY=your_key" >> local.properties
     }
   }
 
-  // ---------- smoothed scroll loop ----------
-  let cur = 0, raf = 0;
-  function loop() {
-    const t = progress();
-    cur += (t - cur) * LERP;
-    if (Math.abs(t - cur) < 0.0004) cur = t;
-    render(cur);
-    raf = (cur === t) ? 0 : requestAnimationFrame(loop);
-  }
-  function kick() { if (!raf) raf = requestAnimationFrame(loop); }
-  window.addEventListener('scroll', kick, { passive: true });
-
-  if (!native) {
-  // ==========================================================================
-  // WHEEL - desktop: one tick = one section
-  // ==========================================================================
-  let wheelAccum = 0;
-  let wheelResetTimer = 0;
-
-  function onWheel(e) {
-    if (animating) { e.preventDefault(); return; }
-    if (Math.abs(e.deltaY) < Math.abs(e.deltaX)) return;
-
-    const delta = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? H : 1);
-
-    wheelAccum += delta;
-    clearTimeout(wheelResetTimer);
-    wheelResetTimer = setTimeout(() => { wheelAccum = 0; }, WHEEL_RESET_MS);
-
-    if (Math.abs(wheelAccum) < WHEEL_ACCUM_THRESHOLD) {
-      e.preventDefault();
-      return;
-    }
-
-    const dir = wheelAccum > 0 ? 1 : -1;
-    wheelAccum = 0;
-
-    const p = rawP();
-    const inFooter = p > N - 1 + FOOTER_MARGIN;
-
-    if (inFooter) {
-      if (dir < 0) { e.preventDefault(); tweenTo(N - 1, WHEEL_DURATION); }
-      return;
-    }
-
-    const nearest = clamp(Math.round(p), 0, N - 1);
-    if (Math.abs(p - nearest) > 0.02) currentSection = nearest;
-
-    const next = clamp(currentSection + dir, 0, N - 1);
-    if (next === currentSection) return;
-
-    e.preventDefault();
-    tweenTo(next, WHEEL_DURATION);
-  }
-
-  window.addEventListener('wheel', onWheel, { passive: false });
-
-  // ==========================================================================
-  // KEYBOARD
-  // ==========================================================================
-  window.addEventListener('keydown', (e) => {
-    const tag = (e.target && e.target.tagName) || '';
-    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
-    if (animating) return;
-
-    const p = rawP();
-    const inFooter = p > N - 1 + FOOTER_MARGIN;
-
-    if (e.key === 'ArrowDown' || e.key === 'PageDown') {
-      if (inFooter) return;
-      const nearest = clamp(Math.round(p), 0, N - 1);
-      if (Math.abs(p - nearest) > 0.02) currentSection = nearest;
-      const next = clamp(currentSection + 1, 0, N - 1);
-      if (next !== currentSection) { e.preventDefault(); tweenTo(next, WHEEL_DURATION); }
-    } else if (e.key === 'ArrowUp' || e.key === 'PageUp') {
-      if (inFooter) { e.preventDefault(); tweenTo(N - 1, WHEEL_DURATION); return; }
-      const nearest = clamp(Math.round(p), 0, N - 1);
-      if (Math.abs(p - nearest) > 0.02) currentSection = nearest;
-      const next = clamp(currentSection - 1, 0, N - 1);
-      if (next !== currentSection) { e.preventDefault(); tweenTo(next, WHEEL_DURATION); }
-    } else if (e.key === 'Home') {
-      e.preventDefault(); tweenTo(0, 500);
-    } else if (e.key === 'End') {
-      e.preventDefault(); tweenTo(N - 1, 500);
-    }
-  });
-
-  // ==========================================================================
-  // TOUCH - mobile: one deliberate swipe = one section
-  // ==========================================================================
-  // Native touch scroll runs during the gesture (so you get tactile feedback),
-  // and at touchend we decide which direction you meant and tween exactly one
-  // section in that direction. No more "fight the watcher" - any real swipe
-  // advances, however gently.
-  let touching = false;
-  let touchStartY = 0;
-  let touchStartT = 0;
-  let touchDelta = 0;
-  let lastTouchEnd = 0;
-
-  window.addEventListener('touchstart', (e) => {
-    if (e.touches.length !== 1) return;
-    touching = true;
-    touchStartY = e.touches[0].clientY;
-    touchStartT = performance.now();
-    touchDelta = 0;
-    if (animating) cancelTween();       // user grabs control instantly
+  let ticking = false;
+  window.addEventListener('scroll', () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => { ticking = false; update(); });
   }, { passive: true });
 
-  window.addEventListener('touchmove', (e) => {
-    if (e.touches.length !== 1) return;
-    touchDelta = touchStartY - e.touches[0].clientY;   // + = finger moved up = scroll down
-  }, { passive: true });
-
-  window.addEventListener('touchend', () => {
-    touching = false;
-    lastTouchEnd = performance.now();
-
-    const dt = Math.max(1, performance.now() - touchStartT);
-    const velocity = Math.abs(touchDelta) / dt;      // px / ms
-
-    // Tiny tap or jitter - ignore, let it stay put
-    if (Math.abs(touchDelta) < SWIPE_MIN_DIST && velocity < SWIPE_MIN_VEL) return;
-
-    const p = rawP();
-    const inFooter = p > N - 1 + FOOTER_MARGIN;
-
-    // Leaving the footer (swiping down = finger moves down = touchDelta < 0)
-    if (inFooter) {
-      if (touchDelta < -SWIPE_MIN_DIST) tweenTo(N - 1, TOUCH_DURATION);
-      return;
-    }
-
-    const dir = touchDelta > 0 ? 1 : -1;
-
-    // Base off our tracker, but honor momentum if native scroll carried past
-    const nearest = clamp(Math.round(p), 0, N - 1);
-    let target;
-    if (dir > 0) {
-      target = Math.min(currentSection + 1, N - 1);
-      if (nearest > target) target = nearest;
-    } else {
-      target = Math.max(currentSection - 1, 0);
-      if (nearest < target) target = nearest;
-    }
-
-    tweenTo(target, TOUCH_DURATION);
-  }, { passive: true });
-
-  // ==========================================================================
-  // VELOCITY WATCHER - fallback for non-touch, non-wheel scrolling
-  // (scrollbar drag, programmatic, scrollbar on touch when JS is slow)
-  // ==========================================================================
-  let prevY = window.scrollY;
-  let prevT = performance.now();
-  let vel = 0;
-  let idleFrames = 0;
-
-  function watch() {
-    const now = performance.now();
-    const y = window.scrollY;
-    const dt = Math.max(1, now - prevT);
-    const instVel = Math.abs(y - prevY) / dt;
-
-    vel = vel * 0.6 + instVel * 0.4;
-    prevY = y; prevT = now;
-
-    // Stay completely out of the way during and right after a touch -
-    // the touchend handler owns the settle in that case.
-    if (touching || now - lastTouchEnd < 150) {
-      idleFrames = 0;
-      requestAnimationFrame(watch);
-      return;
-    }
-
-    if (!animating) {
-      if (vel < VEL_THRESHOLD) {
-        idleFrames++;
-        if (idleFrames >= IDLE_FRAMES) {
-          idleFrames = 0;
-          const p = rawP();
-          if (p <= N - 1 + FOOTER_MARGIN) {
-            const nearest = clamp(Math.round(p), 0, N - 1);
-            if (Math.abs(p - nearest) > 0.006) {
-              tweenTo(nearest, TOUCH_DURATION);
-            } else {
-              currentSection = nearest;
-            }
-          }
-        }
-      } else {
-        idleFrames = 0;
-      }
-    }
-    requestAnimationFrame(watch);
-  }
-  requestAnimationFrame(watch);
-  }
-
-  window.addEventListener('resize', () => { measure(); cur = progress(); render(cur); });
+  window.addEventListener('resize', () => { measure(); update(); });
 
   measure();
-  cur = progress();
-  currentSection = clamp(Math.round(rawP()), 0, N - 1);
-  render(cur);
+  update();
   if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(() => { measure(); cur = progress(); render(cur); });
+    document.fonts.ready.then(() => { measure(); update(); });
   }
 })();
 </script>
