@@ -1,0 +1,12 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Voltic</title>
+<script>
+  // https://voltic-pay.github.io/ethereum:0x...@42161?value=1e16
+  //   -> /pay/?u=ethereum%3A0x...%4042161%3Fvalue%3D1e16
+  var m = location.pathname.match(/^\/ethereum:(.*)$/i);
+  if (m) {
+    location.replace('/pay/?u=' + encodeURIComponent('ethereum:' + m[1] + location.search));
+  }
+</script>
+<p>Page not found.</p>
